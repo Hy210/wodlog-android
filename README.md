@@ -46,6 +46,7 @@
 
 ```powershell
 .\gradlew.bat testDebugUnitTest
+.\gradlew.bat assembleDebugAndroidTest
 ```
 
 ## 라이선스

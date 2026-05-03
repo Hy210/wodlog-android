@@ -3,6 +3,13 @@ package com.wodlog.app.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.wodlog.app.data.dao.AiReportDao
+import com.wodlog.app.data.dao.LifestyleLogDao
+import com.wodlog.app.data.dao.MovementDao
+import com.wodlog.app.data.dao.UserProfileDao
+import com.wodlog.app.data.dao.WodDao
+import com.wodlog.app.data.dao.WodResultDao
+import com.wodlog.app.data.dao.WodSectionDao
 import com.wodlog.app.data.entity.AiReportEntity
 import com.wodlog.app.data.entity.LifestyleLogEntity
 import com.wodlog.app.data.entity.MovementEntity
@@ -25,4 +32,18 @@ import com.wodlog.app.data.entity.WodSectionEntity
     exportSchema = false
 )
 @TypeConverters(WodlogTypeConverters::class)
-abstract class WodlogDatabase : RoomDatabase()
+abstract class WodlogDatabase : RoomDatabase() {
+    abstract fun userProfileDao(): UserProfileDao
+
+    abstract fun wodDao(): WodDao
+
+    abstract fun wodSectionDao(): WodSectionDao
+
+    abstract fun movementDao(): MovementDao
+
+    abstract fun wodResultDao(): WodResultDao
+
+    abstract fun lifestyleLogDao(): LifestyleLogDao
+
+    abstract fun aiReportDao(): AiReportDao
+}
