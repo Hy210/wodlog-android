@@ -194,4 +194,16 @@ class WodlogValidatorsTest {
         assertTrue(result.errors.contains(ValidationError.LIFESTYLE_ALCOHOL_AMOUNT_NEGATIVE))
         assertTrue(result.errors.contains(ValidationError.LIFESTYLE_SMOKING_AMOUNT_NEGATIVE))
     }
+
+    @Test
+    fun validateLifestyleInput_blankOptionalValuesAreRepresentedAsNullAndValid() {
+        val result = WodlogValidators.validateLifestyleInput(
+            weekStartDate = LocalDate.of(2026, 4, 27),
+            sleepAverageHours = null,
+            alcoholAmountPerWeek = null,
+            smokingAmountPerWeek = null
+        )
+
+        assertTrue(result.isValid)
+    }
 }
