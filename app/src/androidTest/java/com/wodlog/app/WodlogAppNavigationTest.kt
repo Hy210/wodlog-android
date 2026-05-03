@@ -72,7 +72,7 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-save-wod").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
-        composeRule.onNodeWithTag("text-wod-detail-title").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-wod-detail-title").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -96,9 +96,30 @@ class WodlogAppNavigationTest {
     fun wodDetailEditResult_showsResultEditScreen() {
         composeRule.onNodeWithTag("nav-calendar").performClick()
         composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
-        composeRule.onNodeWithTag("action-edit-result").performClick()
+        composeRule.onNodeWithTag("action-edit-result").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-result-edit").assertIsDisplayed()
+    }
+
+    @Test
+    fun savingResultFromWodDetail_returnsToDetailAndShowsResultSummary() {
+        composeRule.onNodeWithTag("action-create-wod").performClick()
+        composeRule.onNodeWithTag("input-wod-title").performTextInput("Result Flow WOD")
+        composeRule.onNodeWithTag("input-wod-type-FOR_TIME").performScrollTo().performClick()
+        composeRule.onNodeWithTag("action-save-wod").performScrollTo().performClick()
+        composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("action-edit-result").performClick()
+        composeRule.onNodeWithTag("screen-result-edit").assertIsDisplayed()
+        composeRule.onNodeWithTag("input-result-score-type-TIME").performClick()
+        composeRule.onNodeWithTag("input-result-time").performTextInput("300")
+        composeRule.onNodeWithTag("input-result-rx-status-RX").performScrollTo().performClick()
+        composeRule.onNodeWithTag("input-result-condition-GOOD").performScrollTo().performClick()
+        composeRule.onNodeWithTag("input-result-rpe").performScrollTo().performTextInput("8")
+        composeRule.onNodeWithTag("action-save-result").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-wod-detail-result-status").performScrollTo().assertIsDisplayed()
     }
 
     @Test

@@ -18,7 +18,11 @@ import com.wodlog.app.presentation.profile.ProfileViewModel
 import com.wodlog.app.presentation.profile.ProfileViewModelFactory
 import com.wodlog.app.presentation.prompt.PromptScreen
 import com.wodlog.app.presentation.report.ReportEditScreen
+import com.wodlog.app.presentation.resultedit.ResultEditRoute
 import com.wodlog.app.presentation.resultedit.ResultEditScreen
+import com.wodlog.app.presentation.resultedit.ResultEditUiState
+import com.wodlog.app.presentation.resultedit.ResultEditViewModel
+import com.wodlog.app.presentation.resultedit.ResultEditViewModelFactory
 import com.wodlog.app.presentation.settings.SettingsScreen
 import com.wodlog.app.presentation.woddetail.WodDetailRoute
 import com.wodlog.app.presentation.woddetail.WodDetailScreen
@@ -85,7 +89,7 @@ fun WodlogNavHost(
             WodDetailScreen(
                 state = WodDetailUiState(errorMessage = "Open a saved WOD to view details."),
                 onEditResultClick = {
-                    navController.navigate(WodlogRoute.ResultEdit.route)
+                    navController.navigate(WodlogRoute.ResultEdit.placeholderRoute)
                 },
                 onPromptClick = {
                     navController.navigate(WodlogRoute.Prompt.route)
@@ -108,7 +112,7 @@ fun WodlogNavHost(
                 WodDetailScreen(
                     state = WodDetailUiState(errorMessage = "Missing WOD id."),
                     onEditResultClick = {
-                        navController.navigate(WodlogRoute.ResultEdit.route)
+                        navController.navigate(WodlogRoute.ResultEdit.placeholderRoute)
                     },
                     onPromptClick = {
                         navController.navigate(WodlogRoute.Prompt.route)
@@ -125,7 +129,7 @@ fun WodlogNavHost(
                     viewModel = wodDetailViewModel,
                     wodId = wodId,
                     onEditResultClick = {
-                        navController.navigate(WodlogRoute.ResultEdit.route)
+                        navController.navigate(WodlogRoute.ResultEdit.createRoute(wodId))
                     },
                     onPromptClick = {
                         navController.navigate(WodlogRoute.Prompt.route)
@@ -136,8 +140,67 @@ fun WodlogNavHost(
                 )
             }
         }
-        composable(WodlogRoute.ResultEdit.route) {
-            ResultEditScreen()
+        composable(WodlogRoute.ResultEdit.placeholderRoute) {
+            ResultEditScreen(
+                state = ResultEditUiState(message = "Open a saved WOD before entering a result."),
+                onScoreTypeChange = {},
+                onTimeSecondsChange = {},
+                onRoundsChange = {},
+                onRepsChange = {},
+                onTotalRepsChange = {},
+                onLoadChange = {},
+                onDistanceChange = {},
+                onCaloriesChange = {},
+                onRxStatusChange = {},
+                onRpeChange = {},
+                onConditionChange = {},
+                onMemoChange = {},
+                onSaveClick = {}
+            )
+        }
+        composable(
+            route = WodlogRoute.ResultEdit.route,
+            arguments = listOf(
+                navArgument(WodlogRoute.ResultEdit.wodIdArgument) {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val wodId = backStackEntry.arguments?.getLong(WodlogRoute.ResultEdit.wodIdArgument)
+            if (wodId == null) {
+                ResultEditScreen(
+                    state = ResultEditUiState(message = "Missing WOD id."),
+                    onScoreTypeChange = {},
+                    onTimeSecondsChange = {},
+                    onRoundsChange = {},
+                    onRepsChange = {},
+                    onTotalRepsChange = {},
+                    onLoadChange = {},
+                    onDistanceChange = {},
+                    onCaloriesChange = {},
+                    onRxStatusChange = {},
+                    onRpeChange = {},
+                    onConditionChange = {},
+                    onMemoChange = {},
+                    onSaveClick = {}
+                )
+            } else {
+                val resultEditViewModel: ResultEditViewModel = viewModel(
+                    factory = ResultEditViewModelFactory(repository)
+                )
+                ResultEditRoute(
+                    viewModel = resultEditViewModel,
+                    wodId = wodId,
+                    onSaved = {
+                        navController.navigate(WodlogRoute.WodDetail.createRoute(wodId)) {
+                            popUpTo(WodlogRoute.WodDetail.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
         composable(WodlogRoute.Prompt.route) {
             PromptScreen()

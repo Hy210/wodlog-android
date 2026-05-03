@@ -235,7 +235,10 @@ private fun WodResult.toDisplayText(): String {
         loadKg?.let { "load=${it}kg" },
         distanceMeters?.let { "distance=${it}m" },
         calories?.let { "calories=$it" },
-        rpe?.let { "rpe=$it" }
+        "rx=${rxStatus.name}",
+        rpe?.let { "rpe=$it" },
+        condition?.let { "condition=${it.name}" },
+        memo?.let { "memo=$it" }
     )
 
     return values.joinToString(separator = ", ")

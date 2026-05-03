@@ -175,6 +175,10 @@ class ResultEditViewModel(
         }
     }
 
+    fun onSavedNavigationHandled() {
+        _uiState.update { it.copy(savedResultId = null) }
+    }
+
     private fun ResultEditUiState.toParsedInput(): ParsedResultInput {
         val timeSeconds = parseOptionalInt(timeSecondsInput)
         val rounds = parseOptionalInt(roundsInput)
