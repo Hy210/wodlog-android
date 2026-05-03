@@ -96,6 +96,8 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-open-lifestyle").performClick()
 
         composeRule.onNodeWithTag("screen-lifestyle").assertIsDisplayed()
+        composeRule.onNodeWithTag("input-lifestyle-week-start").assertIsDisplayed()
+        composeRule.onNodeWithTag("action-save-lifestyle").performScrollTo().assertIsDisplayed()
     }
 
     @Test

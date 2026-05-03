@@ -16,7 +16,9 @@ import com.wodlog.app.presentation.compare.CompareRoute
 import com.wodlog.app.presentation.compare.CompareViewModel
 import com.wodlog.app.presentation.compare.CompareViewModelFactory
 import com.wodlog.app.presentation.home.HomeScreen
-import com.wodlog.app.presentation.lifestyle.LifestyleScreen
+import com.wodlog.app.presentation.lifestyle.LifestyleRoute
+import com.wodlog.app.presentation.lifestyle.LifestyleViewModel
+import com.wodlog.app.presentation.lifestyle.LifestyleViewModelFactory
 import com.wodlog.app.presentation.profile.ProfileRoute
 import com.wodlog.app.presentation.profile.ProfileViewModel
 import com.wodlog.app.presentation.profile.ProfileViewModelFactory
@@ -226,7 +228,10 @@ fun WodlogNavHost(
             ProfileRoute(viewModel = profileViewModel)
         }
         composable(WodlogRoute.Lifestyle.route) {
-            LifestyleScreen()
+            val lifestyleViewModel: LifestyleViewModel = viewModel(
+                factory = LifestyleViewModelFactory(repository)
+            )
+            LifestyleRoute(viewModel = lifestyleViewModel)
         }
     }
 }
