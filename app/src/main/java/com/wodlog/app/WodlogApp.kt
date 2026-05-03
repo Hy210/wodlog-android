@@ -7,15 +7,34 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.wodlog.app.data.local.WodlogDatabase
+import com.wodlog.app.data.repository.RoomWodlogRepository
 import com.wodlog.app.presentation.navigation.WodlogNavHost
 import com.wodlog.app.presentation.navigation.WodlogRoute
 
 @Composable
 fun WodlogApp() {
+    val appContext = LocalContext.current.applicationContext
+    val database = remember(appContext) {
+        WodlogDatabase.getInstance(appContext)
+    }
+    val repository = remember(database) {
+        RoomWodlogRepository(
+            userProfileDao = database.userProfileDao(),
+            wodDao = database.wodDao(),
+            wodSectionDao = database.wodSectionDao(),
+            movementDao = database.movementDao(),
+            wodResultDao = database.wodResultDao(),
+            lifestyleLogDao = database.lifestyleLogDao(),
+            aiReportDao = database.aiReportDao()
+        )
+    }
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: WodlogRoute.startDestination
@@ -46,6 +65,7 @@ fun WodlogApp() {
     ) { innerPadding ->
         WodlogNavHost(
             navController = navController,
+            repository = repository,
             modifier = Modifier.padding(innerPadding)
         )
     }

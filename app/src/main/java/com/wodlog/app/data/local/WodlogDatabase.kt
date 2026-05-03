@@ -1,6 +1,8 @@
 package com.wodlog.app.data.local
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.wodlog.app.data.dao.AiReportDao
@@ -46,4 +48,19 @@ abstract class WodlogDatabase : RoomDatabase() {
     abstract fun lifestyleLogDao(): LifestyleLogDao
 
     abstract fun aiReportDao(): AiReportDao
+
+    companion object {
+        @Volatile
+        private var instance: WodlogDatabase? = null
+
+        fun getInstance(context: Context): WodlogDatabase {
+            return instance ?: synchronized(this) {
+                instance ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    WodlogDatabase::class.java,
+                    "wodlog.db"
+                ).build().also { instance = it }
+            }
+        }
+    }
 }

@@ -66,6 +66,7 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-open-profile").performClick()
 
         composeRule.onNodeWithTag("screen-profile").assertIsDisplayed()
+        composeRule.onNodeWithTag("input-profile-height").assertIsDisplayed()
     }
 
     @Test

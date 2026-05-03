@@ -2,14 +2,19 @@ package com.wodlog.app.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarScreen
 import com.wodlog.app.presentation.compare.CompareScreen
 import com.wodlog.app.presentation.home.HomeScreen
 import com.wodlog.app.presentation.lifestyle.LifestyleScreen
 import com.wodlog.app.presentation.profile.ProfileScreen
+import com.wodlog.app.presentation.profile.ProfileRoute
+import com.wodlog.app.presentation.profile.ProfileViewModel
+import com.wodlog.app.presentation.profile.ProfileViewModelFactory
 import com.wodlog.app.presentation.prompt.PromptScreen
 import com.wodlog.app.presentation.report.ReportEditScreen
 import com.wodlog.app.presentation.resultedit.ResultEditScreen
@@ -20,6 +25,7 @@ import com.wodlog.app.presentation.wodedit.WodEditScreen
 @Composable
 fun WodlogNavHost(
     navController: NavHostController,
+    repository: WodlogRepository,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -83,7 +89,10 @@ fun WodlogNavHost(
             ReportEditScreen()
         }
         composable(WodlogRoute.Profile.route) {
-            ProfileScreen()
+            val profileViewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(repository)
+            )
+            ProfileRoute(viewModel = profileViewModel)
         }
         composable(WodlogRoute.Lifestyle.route) {
             LifestyleScreen()
