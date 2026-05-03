@@ -36,4 +36,70 @@ class WodlogAppNavigationTest {
 
         composeRule.onNodeWithTag("screen-settings").assertIsDisplayed()
     }
+
+    @Test
+    fun homeCreateWod_showsWodEditScreen() {
+        composeRule.onNodeWithTag("action-create-wod").performClick()
+
+        composeRule.onNodeWithTag("screen-wod-edit").assertIsDisplayed()
+    }
+
+    @Test
+    fun calendarCreateWod_showsWodEditScreen() {
+        composeRule.onNodeWithTag("nav-calendar").performClick()
+        composeRule.onNodeWithTag("action-calendar-create-wod").performClick()
+
+        composeRule.onNodeWithTag("screen-wod-edit").assertIsDisplayed()
+    }
+
+    @Test
+    fun calendarOpenWod_showsWodDetailScreen() {
+        composeRule.onNodeWithTag("nav-calendar").performClick()
+        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+
+        composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsProfile_showsProfileScreen() {
+        composeRule.onNodeWithTag("nav-settings").performClick()
+        composeRule.onNodeWithTag("action-open-profile").performClick()
+
+        composeRule.onNodeWithTag("screen-profile").assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsLifestyle_showsLifestyleScreen() {
+        composeRule.onNodeWithTag("nav-settings").performClick()
+        composeRule.onNodeWithTag("action-open-lifestyle").performClick()
+
+        composeRule.onNodeWithTag("screen-lifestyle").assertIsDisplayed()
+    }
+
+    @Test
+    fun wodDetailEditResult_showsResultEditScreen() {
+        composeRule.onNodeWithTag("nav-calendar").performClick()
+        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        composeRule.onNodeWithTag("action-edit-result").performClick()
+
+        composeRule.onNodeWithTag("screen-result-edit").assertIsDisplayed()
+    }
+
+    @Test
+    fun wodDetailPrompt_showsPromptScreen() {
+        composeRule.onNodeWithTag("nav-calendar").performClick()
+        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        composeRule.onNodeWithTag("action-open-prompt").performClick()
+
+        composeRule.onNodeWithTag("screen-prompt").assertIsDisplayed()
+    }
+
+    @Test
+    fun wodDetailReport_showsReportEditScreen() {
+        composeRule.onNodeWithTag("nav-calendar").performClick()
+        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        composeRule.onNodeWithTag("action-open-report").performClick()
+
+        composeRule.onNodeWithTag("screen-report-edit").assertIsDisplayed()
+    }
 }

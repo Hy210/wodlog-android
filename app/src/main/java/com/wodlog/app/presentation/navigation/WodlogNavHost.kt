@@ -28,22 +28,50 @@ fun WodlogNavHost(
         modifier = modifier
     ) {
         composable(WodlogRoute.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onCreateWodClick = {
+                    navController.navigate(WodlogRoute.WodEdit.route)
+                }
+            )
         }
         composable(WodlogRoute.Calendar.route) {
-            CalendarScreen()
+            CalendarScreen(
+                onCreateWodClick = {
+                    navController.navigate(WodlogRoute.WodEdit.route)
+                },
+                onOpenWodClick = {
+                    navController.navigate(WodlogRoute.WodDetail.route)
+                }
+            )
         }
         composable(WodlogRoute.Compare.route) {
             CompareScreen()
         }
         composable(WodlogRoute.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(
+                onProfileClick = {
+                    navController.navigate(WodlogRoute.Profile.route)
+                },
+                onLifestyleClick = {
+                    navController.navigate(WodlogRoute.Lifestyle.route)
+                }
+            )
         }
         composable(WodlogRoute.WodEdit.route) {
             WodEditScreen()
         }
         composable(WodlogRoute.WodDetail.route) {
-            WodDetailScreen()
+            WodDetailScreen(
+                onEditResultClick = {
+                    navController.navigate(WodlogRoute.ResultEdit.route)
+                },
+                onPromptClick = {
+                    navController.navigate(WodlogRoute.Prompt.route)
+                },
+                onReportClick = {
+                    navController.navigate(WodlogRoute.ReportEdit.route)
+                }
+            )
         }
         composable(WodlogRoute.ResultEdit.route) {
             ResultEditScreen()
