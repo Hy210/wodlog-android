@@ -12,7 +12,9 @@ import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarRoute
 import com.wodlog.app.presentation.calendar.CalendarViewModel
 import com.wodlog.app.presentation.calendar.CalendarViewModelFactory
-import com.wodlog.app.presentation.compare.CompareScreen
+import com.wodlog.app.presentation.compare.CompareRoute
+import com.wodlog.app.presentation.compare.CompareViewModel
+import com.wodlog.app.presentation.compare.CompareViewModelFactory
 import com.wodlog.app.presentation.home.HomeScreen
 import com.wodlog.app.presentation.lifestyle.LifestyleScreen
 import com.wodlog.app.presentation.profile.ProfileRoute
@@ -68,7 +70,10 @@ fun WodlogNavHost(
             )
         }
         composable(WodlogRoute.Compare.route) {
-            CompareScreen()
+            val compareViewModel: CompareViewModel = viewModel(
+                factory = CompareViewModelFactory(repository)
+            )
+            CompareRoute(viewModel = compareViewModel)
         }
         composable(WodlogRoute.Settings.route) {
             SettingsScreen(
