@@ -4,7 +4,7 @@
 
 ## 현재 상태
 
-이 저장소는 Phase 0 기준의 앱 뼈대와 Phase 1 Step 1의 Room 데이터 계층 기초 설정을 포함합니다. 앱 이름, Compose Material 3 테마, 기본 Navigation, 빈 화면 구조, Room Entity/Converter/Database 골격만 준비되어 있으며 실제 WOD 저장 기능은 아직 구현되지 않았습니다.
+이 저장소는 Phase 0 기준의 앱 뼈대, Room 데이터 계층 기초, DAO 골격, Domain Model 분리와 Entity Mapper 테스트를 포함합니다. 앱 이름, Compose Material 3 테마, 기본 Navigation, 빈 화면 구조, Room Entity/Converter/Database/DAO, Domain Model/Mapper만 준비되어 있으며 실제 WOD 저장 기능은 아직 구현되지 않았습니다.
 
 ## MVP 목표
 
