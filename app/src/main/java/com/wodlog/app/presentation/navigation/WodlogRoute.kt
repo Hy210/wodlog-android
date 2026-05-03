@@ -21,23 +21,31 @@ sealed class WodlogRoute(
 
         fun createRoute(wodId: Long): String = "result-edit/$wodId"
     }
-    data object Prompt : WodlogRoute("prompt", "Prompt")
+    data object Prompt : WodlogRoute("prompt/{wodId}", "Prompt") {
+        const val wodIdArgument = "wodId"
+        const val placeholderRoute = "prompt"
+
+        fun createRoute(wodId: Long): String = "prompt/$wodId"
+    }
     data object ReportEdit : WodlogRoute("report-edit", "Report Edit")
     data object Profile : WodlogRoute("profile", "Profile")
     data object Lifestyle : WodlogRoute("lifestyle", "Lifestyle")
 
     companion object {
         val startDestination = Home.route
-        val topLevelRoutes = listOf(Home, Calendar, Compare, Settings)
-        val secondaryRoutes = listOf(
-            WodEdit,
-            WodDetail,
-            ResultEdit,
-            Prompt,
-            ReportEdit,
-            Profile,
-            Lifestyle
-        )
-        val allRoutes = topLevelRoutes + secondaryRoutes
+        val topLevelRoutes: List<WodlogRoute>
+            get() = listOf(Home, Calendar, Compare, Settings)
+        val secondaryRoutes: List<WodlogRoute>
+            get() = listOf(
+                WodEdit,
+                WodDetail,
+                ResultEdit,
+                Prompt,
+                ReportEdit,
+                Profile,
+                Lifestyle
+            )
+        val allRoutes: List<WodlogRoute>
+            get() = topLevelRoutes + secondaryRoutes
     }
 }

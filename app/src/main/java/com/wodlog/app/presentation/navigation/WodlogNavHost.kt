@@ -22,7 +22,11 @@ import com.wodlog.app.presentation.lifestyle.LifestyleViewModelFactory
 import com.wodlog.app.presentation.profile.ProfileRoute
 import com.wodlog.app.presentation.profile.ProfileViewModel
 import com.wodlog.app.presentation.profile.ProfileViewModelFactory
+import com.wodlog.app.presentation.prompt.PromptRoute
 import com.wodlog.app.presentation.prompt.PromptScreen
+import com.wodlog.app.presentation.prompt.PromptUiState
+import com.wodlog.app.presentation.prompt.PromptViewModel
+import com.wodlog.app.presentation.prompt.PromptViewModelFactory
 import com.wodlog.app.presentation.report.ReportEditScreen
 import com.wodlog.app.presentation.resultedit.ResultEditRoute
 import com.wodlog.app.presentation.resultedit.ResultEditScreen
@@ -105,7 +109,7 @@ fun WodlogNavHost(
                     navController.navigate(WodlogRoute.ResultEdit.placeholderRoute)
                 },
                 onPromptClick = {
-                    navController.navigate(WodlogRoute.Prompt.route)
+                    navController.navigate(WodlogRoute.Prompt.placeholderRoute)
                 },
                 onReportClick = {
                     navController.navigate(WodlogRoute.ReportEdit.route)
@@ -128,7 +132,7 @@ fun WodlogNavHost(
                         navController.navigate(WodlogRoute.ResultEdit.placeholderRoute)
                     },
                     onPromptClick = {
-                        navController.navigate(WodlogRoute.Prompt.route)
+                        navController.navigate(WodlogRoute.Prompt.placeholderRoute)
                     },
                     onReportClick = {
                         navController.navigate(WodlogRoute.ReportEdit.route)
@@ -145,7 +149,7 @@ fun WodlogNavHost(
                         navController.navigate(WodlogRoute.ResultEdit.createRoute(wodId))
                     },
                     onPromptClick = {
-                        navController.navigate(WodlogRoute.Prompt.route)
+                        navController.navigate(WodlogRoute.Prompt.createRoute(wodId))
                     },
                     onReportClick = {
                         navController.navigate(WodlogRoute.ReportEdit.route)
@@ -215,8 +219,35 @@ fun WodlogNavHost(
                 )
             }
         }
-        composable(WodlogRoute.Prompt.route) {
-            PromptScreen()
+        composable(WodlogRoute.Prompt.placeholderRoute) {
+            PromptScreen(
+                state = PromptUiState(errorMessage = "Open a saved WOD to generate a prompt."),
+                onCopyClick = {}
+            )
+        }
+        composable(
+            route = WodlogRoute.Prompt.route,
+            arguments = listOf(
+                navArgument(WodlogRoute.Prompt.wodIdArgument) {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val wodId = backStackEntry.arguments?.getLong(WodlogRoute.Prompt.wodIdArgument)
+            if (wodId == null) {
+                PromptScreen(
+                    state = PromptUiState(errorMessage = "Missing WOD id."),
+                    onCopyClick = {}
+                )
+            } else {
+                val promptViewModel: PromptViewModel = viewModel(
+                    factory = PromptViewModelFactory(repository)
+                )
+                PromptRoute(
+                    viewModel = promptViewModel,
+                    wodId = wodId
+                )
+            }
         }
         composable(WodlogRoute.ReportEdit.route) {
             ReportEditScreen()

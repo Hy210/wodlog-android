@@ -136,6 +136,8 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-open-prompt").performClick()
 
         composeRule.onNodeWithTag("screen-prompt").assertIsDisplayed()
+        waitForPromptContent()
+        composeRule.onNodeWithTag("action-copy-prompt").assertIsDisplayed()
     }
 
     @Test
@@ -166,6 +168,14 @@ class WodlogAppNavigationTest {
     private fun waitForWodDetailResult() {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag("text-wod-detail-result-status")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+    }
+
+    private fun waitForPromptContent() {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("text-prompt-content")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
