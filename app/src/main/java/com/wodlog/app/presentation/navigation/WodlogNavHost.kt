@@ -20,7 +20,9 @@ import com.wodlog.app.presentation.report.ReportEditScreen
 import com.wodlog.app.presentation.resultedit.ResultEditScreen
 import com.wodlog.app.presentation.settings.SettingsScreen
 import com.wodlog.app.presentation.woddetail.WodDetailScreen
-import com.wodlog.app.presentation.wodedit.WodEditScreen
+import com.wodlog.app.presentation.wodedit.WodEditRoute
+import com.wodlog.app.presentation.wodedit.WodEditViewModel
+import com.wodlog.app.presentation.wodedit.WodEditViewModelFactory
 
 @Composable
 fun WodlogNavHost(
@@ -64,7 +66,10 @@ fun WodlogNavHost(
             )
         }
         composable(WodlogRoute.WodEdit.route) {
-            WodEditScreen()
+            val wodEditViewModel: WodEditViewModel = viewModel(
+                factory = WodEditViewModelFactory(repository)
+            )
+            WodEditRoute(viewModel = wodEditViewModel)
         }
         composable(WodlogRoute.WodDetail.route) {
             WodDetailScreen(

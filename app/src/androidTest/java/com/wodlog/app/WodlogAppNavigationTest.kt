@@ -42,6 +42,7 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-create-wod").performClick()
 
         composeRule.onNodeWithTag("screen-wod-edit").assertIsDisplayed()
+        composeRule.onNodeWithTag("input-wod-title").assertIsDisplayed()
     }
 
     @Test
