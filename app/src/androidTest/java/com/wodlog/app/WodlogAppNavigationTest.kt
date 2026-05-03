@@ -2,7 +2,9 @@ package com.wodlog.app
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
@@ -50,18 +52,21 @@ class WodlogAppNavigationTest {
     @Test
     fun calendarCreateWod_showsWodEditScreen() {
         composeRule.onNodeWithTag("nav-calendar").performClick()
-        composeRule.onNodeWithTag("action-calendar-create-wod").performClick()
+        composeRule.onNodeWithTag("action-calendar-create-wod").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-wod-edit").assertIsDisplayed()
     }
 
     @Test
     fun calendarOpenWod_showsWodDetailScreen() {
+        val title = "Calendar Detail WOD ${System.nanoTime()}"
+        createWodAndOpenDetail(title)
         composeRule.onNodeWithTag("nav-calendar").performClick()
-        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        composeRule.onNodeWithText(title).performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
-        composeRule.onNodeWithTag("text-wod-detail-error").assertIsDisplayed()
+        waitForWodDetailTitle()
+        composeRule.onNodeWithTag("text-wod-detail-title").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -72,6 +77,7 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-save-wod").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+        waitForWodDetailTitle()
         composeRule.onNodeWithTag("text-wod-detail-title").performScrollTo().assertIsDisplayed()
     }
 
@@ -94,8 +100,7 @@ class WodlogAppNavigationTest {
 
     @Test
     fun wodDetailEditResult_showsResultEditScreen() {
-        composeRule.onNodeWithTag("nav-calendar").performClick()
-        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        createWodAndOpenDetail("Result Entry WOD ${System.nanoTime()}")
         composeRule.onNodeWithTag("action-edit-result").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-result-edit").assertIsDisplayed()
@@ -119,13 +124,13 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-save-result").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+        waitForWodDetailResult()
         composeRule.onNodeWithTag("text-wod-detail-result-status").performScrollTo().assertIsDisplayed()
     }
 
     @Test
     fun wodDetailPrompt_showsPromptScreen() {
-        composeRule.onNodeWithTag("nav-calendar").performClick()
-        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        createWodAndOpenDetail("Prompt WOD ${System.nanoTime()}")
         composeRule.onNodeWithTag("action-open-prompt").performClick()
 
         composeRule.onNodeWithTag("screen-prompt").assertIsDisplayed()
@@ -133,10 +138,34 @@ class WodlogAppNavigationTest {
 
     @Test
     fun wodDetailReport_showsReportEditScreen() {
-        composeRule.onNodeWithTag("nav-calendar").performClick()
-        composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
+        createWodAndOpenDetail("Report WOD ${System.nanoTime()}")
         composeRule.onNodeWithTag("action-open-report").performClick()
 
         composeRule.onNodeWithTag("screen-report-edit").assertIsDisplayed()
+    }
+
+    private fun createWodAndOpenDetail(title: String) {
+        composeRule.onNodeWithTag("action-create-wod").performClick()
+        composeRule.onNodeWithTag("input-wod-title").performTextInput(title)
+        composeRule.onNodeWithTag("input-wod-type-FOR_TIME").performScrollTo().performClick()
+        composeRule.onNodeWithTag("action-save-wod").performScrollTo().performClick()
+        composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+        waitForWodDetailTitle()
+    }
+
+    private fun waitForWodDetailTitle() {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("text-wod-detail-title")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+    }
+
+    private fun waitForWodDetailResult() {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("text-wod-detail-result-status")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
     }
 }

@@ -9,7 +9,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.wodlog.app.domain.repository.WodlogRepository
-import com.wodlog.app.presentation.calendar.CalendarScreen
+import com.wodlog.app.presentation.calendar.CalendarRoute
+import com.wodlog.app.presentation.calendar.CalendarViewModel
+import com.wodlog.app.presentation.calendar.CalendarViewModelFactory
 import com.wodlog.app.presentation.compare.CompareScreen
 import com.wodlog.app.presentation.home.HomeScreen
 import com.wodlog.app.presentation.lifestyle.LifestyleScreen
@@ -52,12 +54,16 @@ fun WodlogNavHost(
             )
         }
         composable(WodlogRoute.Calendar.route) {
-            CalendarScreen(
-                onCreateWodClick = {
+            val calendarViewModel: CalendarViewModel = viewModel(
+                factory = CalendarViewModelFactory(repository)
+            )
+            CalendarRoute(
+                viewModel = calendarViewModel,
+                onCreateWod = {
                     navController.navigate(WodlogRoute.WodEdit.route)
                 },
-                onOpenWodClick = {
-                    navController.navigate(WodlogRoute.WodDetail.placeholderRoute)
+                onOpenWod = { wodId ->
+                    navController.navigate(WodlogRoute.WodDetail.createRoute(wodId))
                 }
             )
         }
