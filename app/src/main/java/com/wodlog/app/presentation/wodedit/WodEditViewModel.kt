@@ -186,6 +186,10 @@ class WodEditViewModel(
         }
     }
 
+    fun onSavedNavigationHandled() {
+        _uiState.update { it.copy(savedWodId = null) }
+    }
+
     private suspend fun saveSections(
         wodId: Long,
         sections: List<WodSectionInputState>

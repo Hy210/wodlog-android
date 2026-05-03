@@ -39,6 +39,7 @@ fun WodEditRoute(
 
     LaunchedEffect(state.savedWodId) {
         state.savedWodId?.let(onSaved)
+        state.savedWodId?.let { viewModel.onSavedNavigationHandled() }
     }
 
     WodEditScreen(

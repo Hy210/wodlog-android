@@ -9,7 +9,12 @@ sealed class WodlogRoute(
     data object Compare : WodlogRoute("compare", "비교")
     data object Settings : WodlogRoute("settings", "설정")
     data object WodEdit : WodlogRoute("wod-edit", "WOD Edit")
-    data object WodDetail : WodlogRoute("wod-detail", "WOD Detail")
+    data object WodDetail : WodlogRoute("wod-detail/{wodId}", "WOD Detail") {
+        const val wodIdArgument = "wodId"
+        const val placeholderRoute = "wod-detail"
+
+        fun createRoute(wodId: Long): String = "wod-detail/$wodId"
+    }
     data object ResultEdit : WodlogRoute("result-edit", "Result Edit")
     data object Prompt : WodlogRoute("prompt", "Prompt")
     data object ReportEdit : WodlogRoute("report-edit", "Report Edit")

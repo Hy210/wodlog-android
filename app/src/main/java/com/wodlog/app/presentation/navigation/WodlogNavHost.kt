@@ -3,15 +3,16 @@ package com.wodlog.app.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarScreen
 import com.wodlog.app.presentation.compare.CompareScreen
 import com.wodlog.app.presentation.home.HomeScreen
 import com.wodlog.app.presentation.lifestyle.LifestyleScreen
-import com.wodlog.app.presentation.profile.ProfileScreen
 import com.wodlog.app.presentation.profile.ProfileRoute
 import com.wodlog.app.presentation.profile.ProfileViewModel
 import com.wodlog.app.presentation.profile.ProfileViewModelFactory
@@ -19,7 +20,11 @@ import com.wodlog.app.presentation.prompt.PromptScreen
 import com.wodlog.app.presentation.report.ReportEditScreen
 import com.wodlog.app.presentation.resultedit.ResultEditScreen
 import com.wodlog.app.presentation.settings.SettingsScreen
+import com.wodlog.app.presentation.woddetail.WodDetailRoute
 import com.wodlog.app.presentation.woddetail.WodDetailScreen
+import com.wodlog.app.presentation.woddetail.WodDetailUiState
+import com.wodlog.app.presentation.woddetail.WodDetailViewModel
+import com.wodlog.app.presentation.woddetail.WodDetailViewModelFactory
 import com.wodlog.app.presentation.wodedit.WodEditRoute
 import com.wodlog.app.presentation.wodedit.WodEditViewModel
 import com.wodlog.app.presentation.wodedit.WodEditViewModelFactory
@@ -48,7 +53,7 @@ fun WodlogNavHost(
                     navController.navigate(WodlogRoute.WodEdit.route)
                 },
                 onOpenWodClick = {
-                    navController.navigate(WodlogRoute.WodDetail.route)
+                    navController.navigate(WodlogRoute.WodDetail.placeholderRoute)
                 }
             )
         }
@@ -69,10 +74,16 @@ fun WodlogNavHost(
             val wodEditViewModel: WodEditViewModel = viewModel(
                 factory = WodEditViewModelFactory(repository)
             )
-            WodEditRoute(viewModel = wodEditViewModel)
+            WodEditRoute(
+                viewModel = wodEditViewModel,
+                onSaved = { wodId ->
+                    navController.navigate(WodlogRoute.WodDetail.createRoute(wodId))
+                }
+            )
         }
-        composable(WodlogRoute.WodDetail.route) {
+        composable(WodlogRoute.WodDetail.placeholderRoute) {
             WodDetailScreen(
+                state = WodDetailUiState(errorMessage = "Open a saved WOD to view details."),
                 onEditResultClick = {
                     navController.navigate(WodlogRoute.ResultEdit.route)
                 },
@@ -83,6 +94,47 @@ fun WodlogNavHost(
                     navController.navigate(WodlogRoute.ReportEdit.route)
                 }
             )
+        }
+        composable(
+            route = WodlogRoute.WodDetail.route,
+            arguments = listOf(
+                navArgument(WodlogRoute.WodDetail.wodIdArgument) {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val wodId = backStackEntry.arguments?.getLong(WodlogRoute.WodDetail.wodIdArgument)
+            if (wodId == null) {
+                WodDetailScreen(
+                    state = WodDetailUiState(errorMessage = "Missing WOD id."),
+                    onEditResultClick = {
+                        navController.navigate(WodlogRoute.ResultEdit.route)
+                    },
+                    onPromptClick = {
+                        navController.navigate(WodlogRoute.Prompt.route)
+                    },
+                    onReportClick = {
+                        navController.navigate(WodlogRoute.ReportEdit.route)
+                    }
+                )
+            } else {
+                val wodDetailViewModel: WodDetailViewModel = viewModel(
+                    factory = WodDetailViewModelFactory(repository)
+                )
+                WodDetailRoute(
+                    viewModel = wodDetailViewModel,
+                    wodId = wodId,
+                    onEditResultClick = {
+                        navController.navigate(WodlogRoute.ResultEdit.route)
+                    },
+                    onPromptClick = {
+                        navController.navigate(WodlogRoute.Prompt.route)
+                    },
+                    onReportClick = {
+                        navController.navigate(WodlogRoute.ReportEdit.route)
+                    }
+                )
+            }
         }
         composable(WodlogRoute.ResultEdit.route) {
             ResultEditScreen()

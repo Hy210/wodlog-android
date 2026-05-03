@@ -4,6 +4,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import org.junit.Rule
 import org.junit.Test
 
@@ -59,6 +61,18 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-calendar-open-wod").performClick()
 
         composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-wod-detail-error").assertIsDisplayed()
+    }
+
+    @Test
+    fun savingWodFromEdit_showsWodDetailScreen() {
+        composeRule.onNodeWithTag("action-create-wod").performClick()
+        composeRule.onNodeWithTag("input-wod-title").performTextInput("Detail Test WOD")
+        composeRule.onNodeWithTag("input-wod-type-FOR_TIME").performScrollTo().performClick()
+        composeRule.onNodeWithTag("action-save-wod").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("screen-wod-detail").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-wod-detail-title").assertIsDisplayed()
     }
 
     @Test
