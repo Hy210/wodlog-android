@@ -22,6 +22,8 @@ interface WodlogRepository {
 
     suspend fun getRecentWods(limit: Int = 3): List<Wod>
 
+    suspend fun getAllWods(): List<Wod> = getRecentWods(Int.MAX_VALUE)
+
     suspend fun saveWod(wod: Wod): Long
 
     suspend fun deleteWod(id: Long)
@@ -45,6 +47,8 @@ interface WodlogRepository {
     suspend fun deleteWodResult(id: Long)
 
     suspend fun getLifestyleLogByWeekStart(weekStartDate: LocalDate): LifestyleLog?
+
+    suspend fun getAllLifestyleLogs(): List<LifestyleLog> = emptyList()
 
     suspend fun saveLifestyleLog(log: LifestyleLog): Long
 

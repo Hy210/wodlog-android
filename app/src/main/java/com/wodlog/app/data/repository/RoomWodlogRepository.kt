@@ -59,6 +59,10 @@ class RoomWodlogRepository(
             .map { it.toDomain() }
     }
 
+    override suspend fun getAllWods(): List<Wod> {
+        return wodDao.getAllLatestFirst().map { it.toDomain() }
+    }
+
     override suspend fun saveWod(wod: Wod): Long {
         if (wod.id == 0L) {
             return wodDao.insert(wod.toEntity())
@@ -125,6 +129,10 @@ class RoomWodlogRepository(
 
     override suspend fun getLifestyleLogByWeekStart(weekStartDate: LocalDate): LifestyleLog? {
         return lifestyleLogDao.getByWeekStartDate(weekStartDate)?.toDomain()
+    }
+
+    override suspend fun getAllLifestyleLogs(): List<LifestyleLog> {
+        return lifestyleLogDao.getAllLatestFirst().map { it.toDomain() }
     }
 
     override suspend fun saveLifestyleLog(log: LifestyleLog): Long {
