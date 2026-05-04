@@ -37,6 +37,7 @@ import com.wodlog.app.presentation.resultedit.ResultEditScreen
 import com.wodlog.app.presentation.resultedit.ResultEditUiState
 import com.wodlog.app.presentation.resultedit.ResultEditViewModel
 import com.wodlog.app.presentation.resultedit.ResultEditViewModelFactory
+import com.wodlog.app.presentation.settings.LicenseScreen
 import com.wodlog.app.presentation.settings.SettingsScreen
 import com.wodlog.app.presentation.woddetail.WodDetailRoute
 import com.wodlog.app.presentation.woddetail.WodDetailScreen
@@ -92,6 +93,9 @@ fun WodlogNavHost(
                 },
                 onLifestyleClick = {
                     navController.navigate(WodlogRoute.Lifestyle.route)
+                },
+                onLicenseClick = {
+                    navController.navigate(WodlogRoute.License.route)
                 }
             )
         }
@@ -302,6 +306,9 @@ fun WodlogNavHost(
                 factory = LifestyleViewModelFactory(repository)
             )
             LifestyleRoute(viewModel = lifestyleViewModel)
+        }
+        composable(WodlogRoute.License.route) {
+            LicenseScreen()
         }
     }
 }

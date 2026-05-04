@@ -35,6 +35,7 @@ sealed class WodlogRoute(
     }
     data object Profile : WodlogRoute("profile", "Profile")
     data object Lifestyle : WodlogRoute("lifestyle", "Lifestyle")
+    data object License : WodlogRoute("license", "License")
 
     companion object {
         val startDestination = Home.route
@@ -48,7 +49,8 @@ sealed class WodlogRoute(
                 Prompt,
                 ReportEdit,
                 Profile,
-                Lifestyle
+                Lifestyle,
+                License
             )
         val allRoutes: List<WodlogRoute>
             get() = topLevelRoutes + secondaryRoutes

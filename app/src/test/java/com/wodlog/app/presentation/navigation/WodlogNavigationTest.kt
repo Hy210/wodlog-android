@@ -21,6 +21,7 @@ class WodlogNavigationTest {
         assertTrue(routes.contains("report-edit/{wodId}"))
         assertTrue(routes.contains("profile"))
         assertTrue(routes.contains("lifestyle"))
+        assertTrue(routes.contains("license"))
     }
 
     @Test

@@ -101,6 +101,14 @@ class WodlogAppNavigationTest {
     }
 
     @Test
+    fun settingsLicense_showsLicenseScreen() {
+        composeRule.onNodeWithTag("nav-settings").performClick()
+        composeRule.onNodeWithTag("action-open-license").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("screen-license").assertIsDisplayed()
+    }
+
+    @Test
     fun wodDetailEditResult_showsResultEditScreen() {
         createWodAndOpenDetail("Result Entry WOD ${System.nanoTime()}")
         composeRule.onNodeWithTag("action-edit-result").performScrollTo().performClick()
