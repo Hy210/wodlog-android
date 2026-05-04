@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +20,10 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import com.wodlog.app.presentation.components.WodLogCard
+import com.wodlog.app.presentation.components.WodLogPrimaryButton
+import com.wodlog.app.presentation.components.WodLogStatusChip
+import com.wodlog.app.presentation.components.WodLogStatusChipTone
 
 @Composable
 fun PromptRoute(
@@ -53,63 +55,83 @@ fun PromptScreen(
             .fillMaxSize()
             .testTag("screen-prompt")
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Prompt",
+            text = "ChatGPT 질문지",
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = "Copy this prompt and paste it into ChatGPT yourself.",
-            style = MaterialTheme.typography.bodyMedium
+            text = "질문지를 복사한 뒤 ChatGPT에 직접 붙여넣으세요.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "This app does not call OpenAI API or send this prompt to a server.",
+            text = "이 앱은 OpenAI API를 호출하거나 질문지를 서버로 보내지 않습니다.",
             style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag("text-prompt-local-only-note")
         )
 
         if (state.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.testTag("prompt-loading")
-            )
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                CircularProgressIndicator(modifier = Modifier.testTag("prompt-loading"))
+                Text(
+                    text = "질문지를 준비하는 중입니다",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
 
         state.errorMessage?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("prompt-error")
-            )
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("prompt-error")
+                )
+            }
         }
 
         state.wodTitle?.let { title ->
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.testTag("text-prompt-wod-title")
-            )
+            WodLogCard(
+                modifier = Modifier.fillMaxWidth(),
+                title = "대상 WOD",
+                actions = {
+                    WodLogStatusChip(
+                        text = "로컬 복사",
+                        tone = WodLogStatusChipTone.Neutral
+                    )
+                }
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.testTag("text-prompt-wod-title")
+                )
+            }
         }
 
-        Surface(
-            tonalElevation = 1.dp,
-            shape = MaterialTheme.shapes.small,
+        WodLogCard(
+            title = "질문지 내용",
+            subtitle = "전체 내용을 훑어본 뒤 복사할 수 있습니다.",
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = state.promptText.ifBlank { "Prompt is not ready yet." },
+                text = state.promptText.ifBlank { "질문지가 아직 준비되지 않았습니다." },
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("text-prompt-content")
-                    .padding(16.dp)
             )
         }
 
-        Button(
+        WodLogPrimaryButton(
+            text = "질문지 복사",
             onClick = {
                 if (state.promptText.isNotBlank()) {
                     clipboardManager.setText(AnnotatedString(state.promptText))
@@ -117,17 +139,19 @@ fun PromptScreen(
                 }
             },
             enabled = state.promptText.isNotBlank() && !state.isLoading,
-            modifier = Modifier.testTag("action-copy-prompt")
-        ) {
-            Text("Copy prompt")
-        }
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("action-copy-prompt")
+        )
 
         state.copyMessage?.let { message ->
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("text-prompt-copy-message")
-            )
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                WodLogStatusChip(
+                    text = message,
+                    tone = WodLogStatusChipTone.Success,
+                    modifier = Modifier.testTag("text-prompt-copy-message")
+                )
+            }
         }
     }
 }
