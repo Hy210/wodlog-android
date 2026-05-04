@@ -2,6 +2,8 @@ package com.wodlog.app.presentation.compare
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,11 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +27,16 @@ import androidx.compose.ui.unit.dp
 import com.wodlog.app.domain.analysis.CategoryShare
 import com.wodlog.app.domain.analysis.ComparisonLabel
 import com.wodlog.app.domain.analysis.WodComparisonItem
+import com.wodlog.app.domain.model.MovementCategory
+import com.wodlog.app.domain.model.RxStatus
+import com.wodlog.app.domain.model.WodType
+import com.wodlog.app.presentation.components.WodLogCard
+import com.wodlog.app.presentation.components.WodLogEmptyState
+import com.wodlog.app.presentation.components.WodLogMetricChip
+import com.wodlog.app.presentation.components.WodLogPrimaryButton
+import com.wodlog.app.presentation.components.WodLogSectionHeader
+import com.wodlog.app.presentation.components.WodLogStatusChip
+import com.wodlog.app.presentation.components.WodLogStatusChipTone
 import java.util.Locale
 
 @Composable
@@ -53,40 +63,19 @@ fun CompareScreen(
             .fillMaxSize()
             .testTag("screen-compare")
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = "최근 3회 비교",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Text(
-                    text = "정량 지표 중심 요약",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            Button(
-                onClick = onRefreshClick,
-                modifier = Modifier.testTag("action-refresh-compare")
-            ) {
-                Text(text = "새로고침")
-            }
-        }
+        CompareHeader(onRefreshClick = onRefreshClick)
 
         when {
             state.isLoading -> CompareLoading()
             state.errorMessage != null -> CompareError(state.errorMessage)
             state.isEmpty || state.summary == null -> CompareEmpty()
             else -> {
-                Text(
-                    text = "비교 대상 ${state.wodCount}개",
-                    style = MaterialTheme.typography.titleMedium
+                WodLogSectionHeader(
+                    title = "최근 3회 비교",
+                    description = "비교 대상 ${state.wodCount}개"
                 )
                 CompareSummaryList(items = state.summary.items)
                 CategoryBreakdown(shares = state.summary.categoryBreakdown)
@@ -97,37 +86,83 @@ fun CompareScreen(
 }
 
 @Composable
-private fun CompareLoading() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("compare-loading")
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+private fun CompareHeader(
+    onRefreshClick: () -> Unit
+) {
+    WodLogCard(
+        title = "최근 3회 비교",
+        subtitle = "반복되는 WOD를 단순 순위로 판단하지 않고 지표만 요약합니다",
+        outlined = false
     ) {
-        CircularProgressIndicator()
-        Text(text = "비교 데이터를 불러오는 중")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "기록 흐름",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "reps, load, distance, calories를 한눈에 봅니다.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            WodLogPrimaryButton(
+                text = "새로고침",
+                onClick = onRefreshClick,
+                modifier = Modifier.testTag("action-refresh-compare")
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompareLoading() {
+    WodLogCard(
+        modifier = Modifier.testTag("compare-loading")
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator()
+            Text(text = "비교 데이터를 불러오는 중입니다")
+        }
     }
 }
 
 @Composable
 private fun CompareEmpty() {
-    Text(
-        text = "비교할 WOD 기록이 없습니다.",
-        style = MaterialTheme.typography.bodyLarge,
+    WodLogCard(
         modifier = Modifier.testTag("compare-empty")
-    )
+    ) {
+        WodLogEmptyState(
+            title = "비교할 기록이 아직 부족합니다",
+            description = "WOD 기록이 쌓이면 최근 3회를 지표별로 비교할 수 있습니다."
+        )
+    }
 }
 
 @Composable
 private fun CompareError(message: String) {
-    Text(
-        text = "비교 데이터를 불러오지 못했습니다: $message",
-        color = MaterialTheme.colorScheme.error,
-        style = MaterialTheme.typography.bodyLarge,
+    WodLogCard(
         modifier = Modifier.testTag("compare-error")
-    )
+    ) {
+        Text(
+            text = "비교 데이터를 불러오지 못했습니다. $message",
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
 }
 
 @Composable
@@ -142,67 +177,79 @@ private fun CompareSummaryList(items: List<WodComparisonItem>) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun WodComparisonCard(item: WodComparisonItem) {
-    OutlinedCard(
+    WodLogCard(
+        title = item.label.displayName(),
+        subtitle = "${item.date} · ${item.title}",
+        actions = {
+            WodLogStatusChip(
+                text = item.rxStatus.displayName(),
+                tone = item.rxStatus.statusTone()
+            )
+        },
         modifier = Modifier
             .fillMaxWidth()
             .testTag(item.label.testTag())
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WodLogStatusChip(
+                text = item.wodType.displayName(),
+                tone = WodLogStatusChipTone.Primary
+            )
+            item.rpe?.let {
+                WodLogStatusChip(text = "RPE $it")
+            }
+        }
+        HorizontalDivider()
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = item.label.displayName(),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(text = "${item.date} · ${item.title}")
-            Text(text = "WOD type: ${item.wodType.name}")
-            HorizontalDivider()
-            MetricRow(label = "Total reps", value = item.totalReps.toString())
-            MetricRow(label = "Load volume", value = formatDouble(item.totalLoadVolume))
-            MetricRow(label = "Distance", value = formatDouble(item.totalDistance))
-            MetricRow(label = "Calories", value = formatDouble(item.totalCalories))
-            MetricRow(label = "Rx status", value = item.rxStatus?.name ?: "-")
-            MetricRow(label = "RPE", value = item.rpe?.toString() ?: "-")
+            WodLogMetricChip(label = "Total reps", value = item.totalReps.toString(), unit = "reps")
+            WodLogMetricChip(label = "Load volume", value = formatDouble(item.totalLoadVolume), unit = "kg")
+            WodLogMetricChip(label = "Distance", value = formatDouble(item.totalDistance), unit = "m")
+            WodLogMetricChip(label = "Calories", value = formatDouble(item.totalCalories), unit = "kcal")
         }
     }
 }
 
 @Composable
-private fun MetricRow(
-    label: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = label)
-        Text(text = value)
-    }
-}
-
-@Composable
 private fun CategoryBreakdown(shares: List<CategoryShare>) {
-    Column(
+    WodLogCard(
+        title = "카테고리별 비중",
+        subtitle = "최근 기록에 포함된 movement 분포",
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("compare-category-breakdown"),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .testTag("compare-category-breakdown")
     ) {
-        Text(
-            text = "카테고리별 비중",
-            style = MaterialTheme.typography.titleMedium
-        )
         if (shares.isEmpty()) {
-            Text(text = "기록된 movement 카테고리가 없습니다.")
+            Text(
+                text = "기록된 movement 카테고리가 없습니다.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         } else {
             shares.forEach { share ->
-                Text(
-                    text = "${share.category.name}: ${share.count}개, ${formatPercent(share.ratio)}"
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${share.category.name}: ${share.count}개 ${formatPercent(share.ratio)}"
+                    )
+                    WodLogStatusChip(
+                        text = share.category.displayName(),
+                        tone = WodLogStatusChipTone.Neutral
+                    )
+                }
             }
         }
     }
@@ -210,26 +257,26 @@ private fun CategoryBreakdown(shares: List<CategoryShare>) {
 
 @Composable
 private fun NeutralSummary(lines: List<String>) {
-    Column(
+    WodLogCard(
+        title = "요약",
+        subtitle = "자동 판단 없이 확인 가능한 정보만 표시합니다",
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("compare-neutral-summary"),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .testTag("compare-neutral-summary")
     ) {
-        Text(
-            text = "요약",
-            style = MaterialTheme.typography.titleMedium
-        )
         lines.forEach { line ->
-            Text(text = line)
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
 private fun ComparisonLabel.displayName(): String = when (this) {
-    ComparisonLabel.Older -> "전전 WOD"
-    ComparisonLabel.Previous -> "전 WOD"
+    ComparisonLabel.Older -> "이전 WOD"
+    ComparisonLabel.Previous -> "직전 WOD"
     ComparisonLabel.Current -> "현재 WOD"
 }
 
@@ -237,6 +284,39 @@ private fun ComparisonLabel.testTag(): String = when (this) {
     ComparisonLabel.Older -> "compare-item-older"
     ComparisonLabel.Previous -> "compare-item-previous"
     ComparisonLabel.Current -> "compare-item-current"
+}
+
+private fun WodType.displayName(): String = when (this) {
+    WodType.FOR_TIME -> "For Time"
+    WodType.AMRAP -> "AMRAP"
+    WodType.EMOM -> "EMOM"
+    WodType.RFT -> "RFT"
+    WodType.STRENGTH -> "Strength"
+    WodType.SKILL -> "Skill"
+    WodType.INTERVAL -> "Interval"
+    WodType.OTHER -> "Other"
+}
+
+private fun RxStatus?.displayName(): String = when (this) {
+    RxStatus.RX -> "Rx"
+    RxStatus.SCALED -> "Scaled"
+    RxStatus.CUSTOM -> "Custom"
+    RxStatus.UNKNOWN, null -> "Unknown"
+}
+
+private fun RxStatus?.statusTone(): WodLogStatusChipTone = when (this) {
+    RxStatus.RX -> WodLogStatusChipTone.Success
+    RxStatus.SCALED, RxStatus.CUSTOM -> WodLogStatusChipTone.Warning
+    RxStatus.UNKNOWN, null -> WodLogStatusChipTone.Neutral
+}
+
+private fun MovementCategory.displayName(): String = when (this) {
+    MovementCategory.STRENGTH -> "Strength"
+    MovementCategory.CARDIO -> "Cardio"
+    MovementCategory.GYMNASTICS -> "Gymnastics"
+    MovementCategory.WEIGHTLIFTING -> "Weightlifting"
+    MovementCategory.BODYWEIGHT -> "Bodyweight"
+    MovementCategory.OTHER -> "Other"
 }
 
 private fun formatDouble(value: Double): String =
