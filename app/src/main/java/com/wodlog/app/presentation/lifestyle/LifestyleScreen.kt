@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.wodlog.app.presentation.components.WodLogCard
+import com.wodlog.app.presentation.components.WodLogPrimaryButton
+import com.wodlog.app.presentation.components.WodLogSectionHeader
+import com.wodlog.app.presentation.components.WodLogStatusChip
+import com.wodlog.app.presentation.components.WodLogStatusChipTone
+import com.wodlog.app.presentation.components.WodLogTextField
 import com.wodlog.app.util.ValidationError
 
 @Composable
@@ -68,135 +72,164 @@ fun LifestyleScreen(
             .fillMaxSize()
             .testTag("screen-lifestyle")
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Lifestyle",
+            text = "생활습관",
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Text(
-            text = if (state.hasExistingLog) "Saved weekly log" else "No weekly log yet",
-            style = MaterialTheme.typography.bodyMedium,
+        WodLogStatusChip(
+            text = if (state.hasExistingLog) "저장된 주간 기록" else "주간 기록 없음",
+            tone = if (state.hasExistingLog) WodLogStatusChipTone.Success else WodLogStatusChipTone.Neutral,
             modifier = Modifier.testTag("text-lifestyle-status")
         )
 
         if (state.isLoading) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
                 CircularProgressIndicator(modifier = Modifier.testTag("progress-lifestyle-loading"))
+                Text(
+                    text = "생활습관 기록을 불러오는 중입니다",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
 
-        OutlinedTextField(
-            value = state.weekStartDateInput,
-            onValueChange = onWeekStartDateChange,
-            label = { Text("Week start yyyy-MM-dd") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-lifestyle-week-start")
-        )
+        WodLogCard(
+            title = "주간 기준",
+            subtitle = "월요일 날짜를 기준으로 한 주를 기록합니다.",
+            outlined = false,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            WodLogTextField(
+                value = state.weekStartDateInput,
+                onValueChange = onWeekStartDateChange,
+                label = "주 시작일",
+                placeholder = "yyyy-MM-dd",
+                supportingText = "월요일 날짜를 입력하세요.",
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.testTag("input-lifestyle-week-start")
+            )
+        }
 
-        OutlinedTextField(
-            value = state.dietSummaryInput,
-            onValueChange = onDietSummaryChange,
-            label = { Text("Diet summary") },
-            minLines = 3,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-lifestyle-diet-summary")
+        WodLogSectionHeader(
+            title = "식단과 회복",
+            description = "식단, 수면, 컨디션 흐름을 질문지에 반영합니다."
         )
+        WodLogCard(
+            title = "식단 메모",
+            subtitle = "일주일 식단을 짧게 요약합니다.",
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            WodLogTextField(
+                value = state.dietSummaryInput,
+                onValueChange = onDietSummaryChange,
+                label = "식단 메모",
+                placeholder = "예: 단백질은 충분, 주말 외식 2회",
+                singleLine = false,
+                minLines = 4,
+                modifier = Modifier.testTag("input-lifestyle-diet-summary")
+            )
+            WodLogTextField(
+                value = state.averageSleepHoursInput,
+                onValueChange = onAverageSleepHoursChange,
+                label = "평균 수면 시간",
+                placeholder = "시간",
+                supportingText = "0부터 24 사이",
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.testTag("input-lifestyle-sleep-hours")
+            )
+        }
 
-        ToggleRow(
-            label = "Alcohol",
-            checked = state.hasAlcohol,
-            onCheckedChange = onHasAlcoholChange,
-            tag = "toggle-lifestyle-alcohol"
-        )
+        WodLogCard(
+            title = "음주와 흡연",
+            subtitle = "없다면 꺼둔 상태로 저장하면 됩니다.",
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            ToggleRow(
+                label = "음주",
+                checked = state.hasAlcohol,
+                onCheckedChange = onHasAlcoholChange,
+                tag = "toggle-lifestyle-alcohol"
+            )
+            WodLogTextField(
+                value = state.alcoholAmountPerWeekInput,
+                onValueChange = onAlcoholAmountChange,
+                label = "주간 음주량",
+                placeholder = "횟수 또는 잔 수",
+                enabled = state.hasAlcohol,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.testTag("input-lifestyle-alcohol-amount")
+            )
 
-        OutlinedTextField(
-            value = state.alcoholAmountPerWeekInput,
-            onValueChange = onAlcoholAmountChange,
-            label = { Text("Alcohol amount per week") },
-            enabled = state.hasAlcohol,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-lifestyle-alcohol-amount")
-        )
+            ToggleRow(
+                label = "흡연",
+                checked = state.hasSmoking,
+                onCheckedChange = onHasSmokingChange,
+                tag = "toggle-lifestyle-smoking"
+            )
+            WodLogTextField(
+                value = state.smokingAmountPerWeekInput,
+                onValueChange = onSmokingAmountChange,
+                label = "주간 흡연량",
+                placeholder = "개비 수",
+                enabled = state.hasSmoking,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.testTag("input-lifestyle-smoking-amount")
+            )
+        }
 
-        ToggleRow(
-            label = "Smoking",
-            checked = state.hasSmoking,
-            onCheckedChange = onHasSmokingChange,
-            tag = "toggle-lifestyle-smoking"
-        )
-
-        OutlinedTextField(
-            value = state.smokingAmountPerWeekInput,
-            onValueChange = onSmokingAmountChange,
-            label = { Text("Smoking amount per week") },
-            enabled = state.hasSmoking,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-lifestyle-smoking-amount")
-        )
-
-        OutlinedTextField(
-            value = state.averageSleepHoursInput,
-            onValueChange = onAverageSleepHoursChange,
-            label = { Text("Average sleep hours") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-lifestyle-sleep-hours")
-        )
-
-        OutlinedTextField(
-            value = state.memoInput,
-            onValueChange = onMemoChange,
-            label = { Text("Memo") },
-            minLines = 2,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-lifestyle-memo")
-        )
+        WodLogCard(
+            title = "메모",
+            subtitle = "스트레스, 활동량, 특이사항을 남겨두세요.",
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            WodLogTextField(
+                value = state.memoInput,
+                onValueChange = onMemoChange,
+                label = "생활 메모",
+                placeholder = "예: 업무 스트레스 높음, 걷기 많음",
+                singleLine = false,
+                minLines = 3,
+                modifier = Modifier.testTag("input-lifestyle-memo")
+            )
+        }
 
         if (state.validationErrors.isNotEmpty()) {
-            Text(
-                text = state.validationErrors.joinToString(separator = "\n") { it.toDisplayText() },
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("text-lifestyle-errors")
-            )
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = state.validationErrors.joinToString(separator = "\n") { it.toDisplayText() },
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("text-lifestyle-errors")
+                )
+            }
         }
 
         state.message?.let { message ->
-            Text(
-                text = state.savedLifestyleLogId?.let { "$message (#$it)" } ?: message,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("text-lifestyle-message")
-            )
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                WodLogStatusChip(
+                    text = state.savedLifestyleLogId?.let { "$message (#$it)" } ?: message,
+                    tone = WodLogStatusChipTone.Success,
+                    modifier = Modifier.testTag("text-lifestyle-message")
+                )
+            }
         }
 
-        Button(
+        WodLogPrimaryButton(
+            text = if (state.isSaving) "저장 중..." else "생활습관 저장",
             onClick = onSaveClick,
             enabled = !state.isSaving && !state.isLoading,
+            loading = state.isSaving,
             modifier = Modifier
-                .align(Alignment.End)
+                .fillMaxWidth()
                 .testTag("action-save-lifestyle")
-        ) {
-            Text(if (state.isSaving) "Saving" else "Save lifestyle")
-        }
+        )
     }
 }
 
@@ -208,7 +241,9 @@ private fun ToggleRow(
     tag: String
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(tag),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -218,22 +253,21 @@ private fun ToggleRow(
         )
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier.testTag(tag)
+            onCheckedChange = onCheckedChange
         )
     }
 }
 
 private fun ValidationError.toDisplayText(): String {
     return when (this) {
-        ValidationError.WOD_DATE_INVALID -> "Week start date must use yyyy-MM-dd."
-        ValidationError.LIFESTYLE_WEEK_START_NOT_MONDAY -> "Week start date must be Monday."
-        ValidationError.LIFESTYLE_SLEEP_HOURS_INVALID -> "Sleep hours must be numeric."
-        ValidationError.LIFESTYLE_SLEEP_HOURS_OUT_OF_RANGE -> "Sleep hours must be between 0 and 24."
-        ValidationError.LIFESTYLE_ALCOHOL_AMOUNT_INVALID -> "Alcohol amount must be numeric."
-        ValidationError.LIFESTYLE_ALCOHOL_AMOUNT_NEGATIVE -> "Alcohol amount must be 0 or more."
-        ValidationError.LIFESTYLE_SMOKING_AMOUNT_INVALID -> "Smoking amount must be numeric."
-        ValidationError.LIFESTYLE_SMOKING_AMOUNT_NEGATIVE -> "Smoking amount must be 0 or more."
+        ValidationError.WOD_DATE_INVALID -> "주 시작일은 yyyy-MM-dd 형식으로 입력하세요."
+        ValidationError.LIFESTYLE_WEEK_START_NOT_MONDAY -> "주 시작일은 월요일이어야 합니다."
+        ValidationError.LIFESTYLE_SLEEP_HOURS_INVALID -> "수면 시간은 숫자로 입력하세요."
+        ValidationError.LIFESTYLE_SLEEP_HOURS_OUT_OF_RANGE -> "수면 시간은 0부터 24 사이로 입력하세요."
+        ValidationError.LIFESTYLE_ALCOHOL_AMOUNT_INVALID -> "음주량은 숫자로 입력하세요."
+        ValidationError.LIFESTYLE_ALCOHOL_AMOUNT_NEGATIVE -> "음주량은 0 이상이어야 합니다."
+        ValidationError.LIFESTYLE_SMOKING_AMOUNT_INVALID -> "흡연량은 숫자로 입력하세요."
+        ValidationError.LIFESTYLE_SMOKING_AMOUNT_NEGATIVE -> "흡연량은 0 이상이어야 합니다."
         else -> name
     }
 }

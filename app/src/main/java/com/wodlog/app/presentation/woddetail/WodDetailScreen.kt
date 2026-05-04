@@ -138,6 +138,65 @@ fun WodDetailScreen(
                     }
                 }
 
+                WodLogSectionHeader(title = "액션")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    WodLogSecondaryButton(
+                        text = "결과 입력",
+                        onClick = onEditResultClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("action-edit-result")
+                    )
+                    WodLogSecondaryButton(
+                        text = "질문지 만들기",
+                        onClick = onPromptClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("action-open-prompt")
+                    )
+                }
+                WodLogPrimaryButton(
+                    text = "GPT 답변 보기",
+                    onClick = onReportClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("action-open-report")
+                )
+
+                WodLogCard(title = "요약", modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = if (state.movements.isEmpty()) {
+                            "등록된 동작이 없습니다."
+                        } else {
+                            state.movements
+                                .sortedBy { it.orderIndex }
+                                .joinToString(separator = "\n") { it.toDisplayText() }
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag("text-wod-detail-movements")
+                    )
+                    Text(
+                        text = state.result?.toDisplayText() ?: "결과가 아직 없습니다.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag("text-wod-detail-result-status")
+                    )
+                    Text(
+                        text = if (state.aiReports.isEmpty()) {
+                            "저장된 GPT 답변이 없습니다."
+                        } else {
+                            "저장된 답변 ${state.aiReports.size}개"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag("text-wod-detail-report-status")
+                    )
+                }
+
                 WodLogSectionHeader(
                     title = "기록 정보",
                     description = "WOD 구성과 메모를 확인합니다."
@@ -179,7 +238,7 @@ fun WodDetailScreen(
                             .sortedBy { it.orderIndex }
                             .joinToString(separator = "\n") { it.toDisplayText() }
                     },
-                    tag = "text-wod-detail-movements"
+                    tag = "text-wod-detail-movements-detail"
                 )
 
                 WodLogSectionHeader(
@@ -204,7 +263,7 @@ fun WodDetailScreen(
                         text = state.result?.toDisplayText() ?: "결과가 아직 없습니다.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.testTag("text-wod-detail-result-status")
+                        modifier = Modifier.testTag("text-wod-detail-result-status-detail")
                     )
                 }
 
@@ -215,7 +274,7 @@ fun WodDetailScreen(
                     } else {
                         "저장된 답변 ${state.aiReports.size}개"
                     },
-                    tag = "text-wod-detail-report-status"
+                    tag = "text-wod-detail-report-status-detail"
                 )
             }
         }
@@ -230,14 +289,14 @@ fun WodDetailScreen(
                 onClick = onEditResultClick,
                 modifier = Modifier
                     .weight(1f)
-                    .testTag("action-edit-result")
+                    .testTag("action-edit-result-bottom")
             )
             WodLogSecondaryButton(
                 text = "질문지 만들기",
                 onClick = onPromptClick,
                 modifier = Modifier
                     .weight(1f)
-                    .testTag("action-open-prompt")
+                    .testTag("action-open-prompt-bottom")
             )
         }
         WodLogPrimaryButton(
@@ -245,7 +304,7 @@ fun WodDetailScreen(
             onClick = onReportClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("action-open-report")
+                .testTag("action-open-report-bottom")
         )
     }
 }

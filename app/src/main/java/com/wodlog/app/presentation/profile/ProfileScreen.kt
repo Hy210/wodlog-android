@@ -9,20 +9,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.wodlog.app.presentation.components.WodLogCard
+import com.wodlog.app.presentation.components.WodLogMetricChip
+import com.wodlog.app.presentation.components.WodLogPrimaryButton
+import com.wodlog.app.presentation.components.WodLogSectionHeader
+import com.wodlog.app.presentation.components.WodLogStatusChip
+import com.wodlog.app.presentation.components.WodLogStatusChipTone
+import com.wodlog.app.presentation.components.WodLogTextField
 import com.wodlog.app.util.ValidationError
 
 @Composable
@@ -57,7 +61,7 @@ fun ProfileScreen(
             .fillMaxSize()
             .testTag("screen-profile")
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -65,85 +69,108 @@ fun ProfileScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Text(
-            text = if (state.hasProfile) "저장된 프로필 있음" else "저장된 프로필 없음",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.testTag("text-profile-status")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            WodLogStatusChip(
+                text = if (state.hasProfile) "저장된 프로필" else "프로필 없음",
+                tone = if (state.hasProfile) WodLogStatusChipTone.Success else WodLogStatusChipTone.Neutral,
+                modifier = Modifier.testTag("text-profile-status")
+            )
+            WodLogMetricChip(
+                label = "운동 기간",
+                value = "${state.trainingDays}",
+                unit = "일",
+                modifier = Modifier.testTag("text-training-days")
+            )
+        }
+
+        WodLogPrimaryButton(
+            text = if (state.isSaving) "저장 중..." else "프로필 저장",
+            onClick = onSaveClick,
+            enabled = !state.isSaving && !state.isLoading,
+            loading = state.isSaving,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("action-save-profile")
         )
 
         if (state.isLoading) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
                 CircularProgressIndicator(modifier = Modifier.testTag("progress-profile-loading"))
+                Text(
+                    text = "프로필을 불러오는 중입니다",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
 
-        OutlinedTextField(
-            value = state.heightCmInput,
-            onValueChange = onHeightChange,
-            label = { Text("키 cm") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-profile-height")
-        )
-
-        OutlinedTextField(
-            value = state.weightKgInput,
-            onValueChange = onWeightChange,
-            label = { Text("몸무게 kg") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-profile-weight")
-        )
-
-        OutlinedTextField(
-            value = state.crossfitStartDateInput,
-            onValueChange = onStartDateChange,
-            label = { Text("크로스핏 시작일 yyyy-MM-dd") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input-profile-start-date")
-        )
-
-        Text(
-            text = "운동 기간 ${state.trainingDays}일",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.testTag("text-training-days")
-        )
-
         if (state.validationErrors.isNotEmpty()) {
-            Text(
-                text = state.validationErrors.joinToString(separator = "\n") { it.toDisplayText() },
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("text-validation-errors")
-            )
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = state.validationErrors.joinToString(separator = "\n") { it.toDisplayText() },
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("text-validation-errors")
+                )
+            }
         }
 
         state.message?.let { message ->
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("text-profile-message")
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                WodLogStatusChip(
+                    text = message,
+                    tone = WodLogStatusChipTone.Success,
+                    modifier = Modifier.testTag("text-profile-message")
+                )
+            }
+        }
+
+        WodLogSectionHeader(
+            title = "기본 정보",
+            description = "몸 상태와 운동 경력을 질문지에 반영합니다."
+        )
+        WodLogCard(
+            title = "신체 정보",
+            subtitle = "선택 입력입니다. 모르면 비워둬도 됩니다.",
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            WodLogTextField(
+                value = state.heightCmInput,
+                onValueChange = onHeightChange,
+                label = "키",
+                placeholder = "cm",
+                supportingText = "예: 175",
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.testTag("input-profile-height")
+            )
+
+            WodLogTextField(
+                value = state.weightKgInput,
+                onValueChange = onWeightChange,
+                label = "몸무게",
+                placeholder = "kg",
+                supportingText = "예: 72.5",
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.testTag("input-profile-weight")
             )
         }
 
-        Button(
-            onClick = onSaveClick,
-            enabled = !state.isSaving && !state.isLoading,
-            modifier = Modifier
-                .align(Alignment.End)
-                .testTag("action-save-profile")
+        WodLogCard(
+            title = "CrossFit 정보",
+            subtitle = "시작일을 기준으로 운동 기간을 계산합니다.",
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (state.isSaving) "저장 중" else "저장")
+            WodLogTextField(
+                value = state.crossfitStartDateInput,
+                onValueChange = onStartDateChange,
+                label = "CrossFit 시작일",
+                placeholder = "yyyy-MM-dd",
+                supportingText = "예: 2024-01-15",
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.testTag("input-profile-start-date")
+            )
         }
     }
 }
@@ -152,7 +179,7 @@ private fun ValidationError.toDisplayText(): String {
     return when (this) {
         ValidationError.HEIGHT_OUT_OF_RANGE -> "키는 50cm부터 250cm까지 입력할 수 있습니다."
         ValidationError.WEIGHT_OUT_OF_RANGE -> "몸무게는 20kg부터 300kg까지 입력할 수 있습니다."
-        ValidationError.CROSSFIT_START_DATE_IN_FUTURE -> "크로스핏 시작일은 미래 날짜일 수 없습니다."
+        ValidationError.CROSSFIT_START_DATE_IN_FUTURE -> "CrossFit 시작일은 미래 날짜일 수 없습니다."
         else -> name
     }
 }

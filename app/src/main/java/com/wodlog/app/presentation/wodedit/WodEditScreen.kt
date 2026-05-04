@@ -304,8 +304,7 @@ private fun SectionInput(
             onValueChange = { onMemoChange(section.localId, it) },
             label = "섹션 메모",
             placeholder = "구성이나 의도를 짧게 남기세요",
-            singleLine = false,
-            minLines = 2,
+            singleLine = true,
             modifier = Modifier.testTag("input-section-memo-$index")
         )
         WodLogDangerButton(
