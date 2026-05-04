@@ -1,6 +1,12 @@
 package com.wodlog.app
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -11,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.wodlog.app.data.local.WodlogDatabase
@@ -57,7 +64,12 @@ fun WodlogApp() {
                             }
                         },
                         label = { Text(route.label) },
-                        icon = { Text(route.navigationIcon()) }
+                        icon = {
+                            Icon(
+                                imageVector = route.navigationIcon(),
+                                contentDescription = route.label
+                            )
+                        }
                     )
                 }
             }
@@ -71,10 +83,10 @@ fun WodlogApp() {
     }
 }
 
-private fun WodlogRoute.navigationIcon(): String = when (this) {
-    WodlogRoute.Home -> "⌂"
-    WodlogRoute.Calendar -> "□"
-    WodlogRoute.Compare -> "≋"
-    WodlogRoute.Settings -> "⚙"
-    else -> ""
+private fun WodlogRoute.navigationIcon(): ImageVector = when (this) {
+    WodlogRoute.Home -> Icons.Default.Home
+    WodlogRoute.Calendar -> Icons.Default.DateRange
+    WodlogRoute.Compare -> Icons.Default.BarChart
+    WodlogRoute.Settings -> Icons.Default.Settings
+    else -> Icons.Default.Home
 }
