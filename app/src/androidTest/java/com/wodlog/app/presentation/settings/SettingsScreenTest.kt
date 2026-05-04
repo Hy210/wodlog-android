@@ -1,6 +1,7 @@
 package com.wodlog.app.presentation.settings
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -46,22 +47,59 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun settingsScreen_displaysDisabledDataAndResetPlaceholders() {
+    fun settingsScreen_displaysExportAndKeepsImportResetDisabled() {
         composeRule.setContent {
             WodlogTheme {
                 SettingsScreen()
             }
         }
 
-        composeRule.onNodeWithTag("action-export-json-placeholder")
+        composeRule.onNodeWithTag("action-export-json")
             .performScrollTo()
-            .assertIsNotEnabled()
+            .assertIsEnabled()
         composeRule.onNodeWithTag("action-import-json-placeholder")
             .performScrollTo()
             .assertIsNotEnabled()
         composeRule.onNodeWithTag("action-reset-data-placeholder")
             .performScrollTo()
             .assertIsNotEnabled()
+    }
+
+    @Test
+    fun exportButton_callsCallback() {
+        var clickCount = 0
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(onExportJsonClick = { clickCount += 1 })
+            }
+        }
+
+        composeRule.onNodeWithTag("action-export-json").performScrollTo().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, clickCount)
+        }
+    }
+
+    @Test
+    fun settingsScreen_displaysExportMessages() {
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    exportState = SettingsExportState(
+                        message = "JSON 내보내기를 완료했습니다.",
+                        errorMessage = "JSON 내보내기에 실패했습니다."
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("text-settings-export-message")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("text-settings-export-error")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 
     @Test

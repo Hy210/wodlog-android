@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.wodlog.app.domain.backup.BackupExportUseCase
 import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarRoute
 import com.wodlog.app.presentation.calendar.CalendarViewModel
@@ -38,7 +39,7 @@ import com.wodlog.app.presentation.resultedit.ResultEditUiState
 import com.wodlog.app.presentation.resultedit.ResultEditViewModel
 import com.wodlog.app.presentation.resultedit.ResultEditViewModelFactory
 import com.wodlog.app.presentation.settings.LicenseScreen
-import com.wodlog.app.presentation.settings.SettingsScreen
+import com.wodlog.app.presentation.settings.SettingsRoute
 import com.wodlog.app.presentation.woddetail.WodDetailRoute
 import com.wodlog.app.presentation.woddetail.WodDetailScreen
 import com.wodlog.app.presentation.woddetail.WodDetailUiState
@@ -87,7 +88,8 @@ fun WodlogNavHost(
             CompareRoute(viewModel = compareViewModel)
         }
         composable(WodlogRoute.Settings.route) {
-            SettingsScreen(
+            SettingsRoute(
+                backupExportUseCase = BackupExportUseCase(repository),
                 onProfileClick = {
                     navController.navigate(WodlogRoute.Profile.route)
                 },

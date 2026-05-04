@@ -23,6 +23,8 @@ fun SettingsScreen(
     onProfileClick: () -> Unit = {},
     onLifestyleClick: () -> Unit = {},
     onLicenseClick: () -> Unit = {},
+    onExportJsonClick: () -> Unit = {},
+    exportState: SettingsExportState = SettingsExportState(),
     appVersion: String = "0.1.0-dev",
 ) {
     Column(
@@ -40,7 +42,7 @@ fun SettingsScreen(
         )
 
         SettingsSection(
-            title = "프로필/생활습관",
+            title = "프로필과 생활습관",
             modifier = Modifier.testTag("settings-section-profile")
         ) {
             Button(
@@ -80,14 +82,33 @@ fun SettingsScreen(
             title = "데이터",
             modifier = Modifier.testTag("settings-section-data")
         ) {
-            OutlinedButton(
-                onClick = {},
-                enabled = false,
+            Button(
+                onClick = onExportJsonClick,
+                enabled = !exportState.isExporting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag("action-export-json-placeholder")
+                    .testTag("action-export-json")
             ) {
-                Text("JSON 내보내기 준비 중")
+                Text(if (exportState.isExporting) "JSON 내보내는 중" else "JSON 내보내기")
+            }
+            if (exportState.isExporting) {
+                Text(
+                    text = "백업 JSON을 준비하고 있습니다.",
+                    modifier = Modifier.testTag("settings-export-progress")
+                )
+            }
+            exportState.message?.let { message ->
+                Text(
+                    text = message,
+                    modifier = Modifier.testTag("text-settings-export-message")
+                )
+            }
+            exportState.errorMessage?.let { errorMessage ->
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("text-settings-export-error")
+                )
             }
             OutlinedButton(
                 onClick = {},
