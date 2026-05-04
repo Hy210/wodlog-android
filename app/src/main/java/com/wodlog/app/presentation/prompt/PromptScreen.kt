@@ -65,6 +65,11 @@ fun PromptScreen(
             text = "Copy this prompt and paste it into ChatGPT yourself.",
             style = MaterialTheme.typography.bodyMedium
         )
+        Text(
+            text = "This app does not call OpenAI API or send this prompt to a server.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.testTag("text-prompt-local-only-note")
+        )
 
         if (state.isLoading) {
             CircularProgressIndicator(

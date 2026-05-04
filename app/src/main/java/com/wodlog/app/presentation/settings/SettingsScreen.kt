@@ -87,7 +87,9 @@ fun SettingsScreen(
         ) {
             Button(
                 onClick = onExportJsonClick,
-                enabled = !exportState.isExporting,
+                enabled = !exportState.isExporting &&
+                    !importState.isImporting &&
+                    !importState.isApplying,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("action-export-json")
@@ -98,7 +100,9 @@ fun SettingsScreen(
 
             OutlinedButton(
                 onClick = onImportJsonClick,
-                enabled = !importState.isImporting,
+                enabled = !exportState.isExporting &&
+                    !importState.isImporting &&
+                    !importState.isApplying,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("action-import-json")

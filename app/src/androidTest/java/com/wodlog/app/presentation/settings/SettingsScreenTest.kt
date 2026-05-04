@@ -247,6 +247,30 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun settingsScreen_disablesBackupActionsWhileImportApplyRuns() {
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    importState = SettingsImportState(isApplying = true)
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("action-export-json")
+            .performScrollTo()
+            .assertIsNotEnabled()
+        composeRule.onNodeWithTag("action-import-json")
+            .performScrollTo()
+            .assertIsNotEnabled()
+        composeRule.onNodeWithTag("action-apply-import")
+            .performScrollTo()
+            .assertIsNotEnabled()
+        composeRule.onNodeWithTag("settings-import-apply-progress")
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
     fun exportButton_callsCallback() {
         var clickCount = 0
         composeRule.setContent {

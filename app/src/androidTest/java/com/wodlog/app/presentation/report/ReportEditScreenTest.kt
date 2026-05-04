@@ -31,6 +31,7 @@ class ReportEditScreenTest {
         }
 
         composeRule.onNodeWithTag("screen-report-edit").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-report-local-only-note").assertIsDisplayed()
         composeRule.onNodeWithTag("input-report-answer").assertIsDisplayed()
         composeRule.onNodeWithTag("action-save-report").assertIsDisplayed()
     }

@@ -32,6 +32,7 @@ class PromptScreenTest {
         composeRule.onNodeWithTag("screen-prompt").assertIsDisplayed()
         composeRule.onNodeWithTag("text-prompt-wod-title").assertIsDisplayed()
         composeRule.onNodeWithTag("text-prompt-content").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-prompt-local-only-note").assertIsDisplayed()
         composeRule.onNodeWithTag("action-copy-prompt").assertIsDisplayed()
         composeRule.onNodeWithText("Prompt body for testing").assertIsDisplayed()
     }

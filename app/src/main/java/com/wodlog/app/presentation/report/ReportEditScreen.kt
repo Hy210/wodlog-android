@@ -75,6 +75,11 @@ fun ReportEditScreen(
             text = "Paste the answer you copied from ChatGPT and save it to this WOD.",
             style = MaterialTheme.typography.bodyMedium
         )
+        Text(
+            text = "No AI request is made here. This screen only saves text you paste manually.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.testTag("text-report-local-only-note")
+        )
 
         state.errorMessage?.let { message ->
             Text(
