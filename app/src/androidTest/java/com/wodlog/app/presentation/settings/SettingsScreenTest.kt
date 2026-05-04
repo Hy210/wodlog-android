@@ -7,6 +7,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import com.wodlog.app.domain.backup.BackupImportError
+import com.wodlog.app.domain.backup.BackupImportErrorType
+import com.wodlog.app.domain.backup.BackupImportPreview
 import com.wodlog.app.presentation.theme.WodlogTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -47,7 +50,7 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun settingsScreen_displaysExportAndKeepsImportResetDisabled() {
+    fun settingsScreen_displaysExportImportAndKeepsResetDisabled() {
         composeRule.setContent {
             WodlogTheme {
                 SettingsScreen()
@@ -57,12 +60,120 @@ class SettingsScreenTest {
         composeRule.onNodeWithTag("action-export-json")
             .performScrollTo()
             .assertIsEnabled()
-        composeRule.onNodeWithTag("action-import-json-placeholder")
+        composeRule.onNodeWithTag("action-import-json")
             .performScrollTo()
-            .assertIsNotEnabled()
+            .assertIsEnabled()
         composeRule.onNodeWithTag("action-reset-data-placeholder")
             .performScrollTo()
             .assertIsNotEnabled()
+    }
+
+    @Test
+    fun importButton_callsCallback() {
+        var clickCount = 0
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(onImportJsonClick = { clickCount += 1 })
+            }
+        }
+
+        composeRule.onNodeWithTag("action-import-json").performScrollTo().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, clickCount)
+        }
+    }
+
+    @Test
+    fun settingsScreen_displaysValidImportPreview() {
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    importState = SettingsImportState(
+                        message = "가져오기 파일을 확인했습니다.",
+                        preview = BackupImportPreview(
+                            backup = null,
+                            isValid = true,
+                            errors = emptyList(),
+                            wodCount = 2,
+                            movementCount = 4,
+                            resultCount = 1,
+                            lifestyleLogCount = 1,
+                            aiReportCount = 3
+                        )
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("text-settings-import-message")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-validity")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-wod-count")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-report-count")
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysInvalidImportPreviewErrors() {
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    importState = SettingsImportState(
+                        message = "가져올 수 없는 백업 파일입니다.",
+                        preview = BackupImportPreview(
+                            backup = null,
+                            isValid = false,
+                            errors = listOf(
+                                BackupImportError(
+                                    type = BackupImportErrorType.INVALID_JSON,
+                                    message = "Invalid JSON."
+                                )
+                            ),
+                            wodCount = 0,
+                            movementCount = 0,
+                            resultCount = 0,
+                            lifestyleLogCount = 0,
+                            aiReportCount = 0
+                        )
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("settings-import-validity")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-error-0")
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun settingsScreen_displaysImportCancelAndFailureMessages() {
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    importState = SettingsImportState(
+                        message = "JSON 가져오기를 취소했습니다.",
+                        errorMessage = "JSON 파일을 읽거나 검증하지 못했습니다."
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("text-settings-import-message")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("text-settings-import-error")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 
     @Test

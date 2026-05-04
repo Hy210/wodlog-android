@@ -24,7 +24,9 @@ fun SettingsScreen(
     onLifestyleClick: () -> Unit = {},
     onLicenseClick: () -> Unit = {},
     onExportJsonClick: () -> Unit = {},
+    onImportJsonClick: () -> Unit = {},
     exportState: SettingsExportState = SettingsExportState(),
+    importState: SettingsImportState = SettingsImportState(),
     appVersion: String = "0.1.0-dev",
 ) {
     Column(
@@ -91,34 +93,18 @@ fun SettingsScreen(
             ) {
                 Text(if (exportState.isExporting) "JSON 내보내는 중" else "JSON 내보내기")
             }
-            if (exportState.isExporting) {
-                Text(
-                    text = "백업 JSON을 준비하고 있습니다.",
-                    modifier = Modifier.testTag("settings-export-progress")
-                )
-            }
-            exportState.message?.let { message ->
-                Text(
-                    text = message,
-                    modifier = Modifier.testTag("text-settings-export-message")
-                )
-            }
-            exportState.errorMessage?.let { errorMessage ->
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.testTag("text-settings-export-error")
-                )
-            }
+            ExportStatus(exportState = exportState)
+
             OutlinedButton(
-                onClick = {},
-                enabled = false,
+                onClick = onImportJsonClick,
+                enabled = !importState.isImporting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag("action-import-json-placeholder")
+                    .testTag("action-import-json")
             ) {
-                Text("JSON 가져오기 준비 중")
+                Text(if (importState.isImporting) "JSON 검증 중" else "JSON 가져오기 미리보기")
             }
+            ImportStatus(importState = importState)
         }
 
         SettingsSection(
@@ -147,6 +133,92 @@ fun SettingsScreen(
                     .testTag("action-reset-data-placeholder")
             ) {
                 Text("앱 데이터 초기화 준비 중")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExportStatus(exportState: SettingsExportState) {
+    if (exportState.isExporting) {
+        Text(
+            text = "백업 JSON을 준비하고 있습니다.",
+            modifier = Modifier.testTag("settings-export-progress")
+        )
+    }
+    exportState.message?.let { message ->
+        Text(
+            text = message,
+            modifier = Modifier.testTag("text-settings-export-message")
+        )
+    }
+    exportState.errorMessage?.let { errorMessage ->
+        Text(
+            text = errorMessage,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.testTag("text-settings-export-error")
+        )
+    }
+}
+
+@Composable
+private fun ImportStatus(importState: SettingsImportState) {
+    if (importState.isImporting) {
+        Text(
+            text = "백업 JSON을 읽고 검증하고 있습니다.",
+            modifier = Modifier.testTag("settings-import-progress")
+        )
+    }
+    importState.message?.let { message ->
+        Text(
+            text = message,
+            modifier = Modifier.testTag("text-settings-import-message")
+        )
+    }
+    importState.errorMessage?.let { errorMessage ->
+        Text(
+            text = errorMessage,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.testTag("text-settings-import-error")
+        )
+    }
+    importState.preview?.let { preview ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("settings-import-preview"),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = if (preview.isValid) "검증 결과: 가져오기 가능" else "검증 결과: 가져오기 불가",
+                modifier = Modifier.testTag("settings-import-validity")
+            )
+            Text(
+                text = "WOD: ${preview.wodCount}",
+                modifier = Modifier.testTag("settings-import-wod-count")
+            )
+            Text(
+                text = "Movement: ${preview.movementCount}",
+                modifier = Modifier.testTag("settings-import-movement-count")
+            )
+            Text(
+                text = "Result: ${preview.resultCount}",
+                modifier = Modifier.testTag("settings-import-result-count")
+            )
+            Text(
+                text = "Lifestyle: ${preview.lifestyleLogCount}",
+                modifier = Modifier.testTag("settings-import-lifestyle-count")
+            )
+            Text(
+                text = "AI Report: ${preview.aiReportCount}",
+                modifier = Modifier.testTag("settings-import-report-count")
+            )
+            preview.errors.forEachIndexed { index, error ->
+                Text(
+                    text = "${error.type}: ${error.message}",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("settings-import-error-$index")
+                )
             }
         }
     }

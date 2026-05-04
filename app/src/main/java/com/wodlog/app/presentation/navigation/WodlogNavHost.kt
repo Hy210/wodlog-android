@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.wodlog.app.domain.backup.BackupExportUseCase
+import com.wodlog.app.domain.backup.BackupImportPreviewUseCase
 import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarRoute
 import com.wodlog.app.presentation.calendar.CalendarViewModel
@@ -90,6 +91,7 @@ fun WodlogNavHost(
         composable(WodlogRoute.Settings.route) {
             SettingsRoute(
                 backupExportUseCase = BackupExportUseCase(repository),
+                backupImportPreviewUseCase = BackupImportPreviewUseCase(),
                 onProfileClick = {
                     navController.navigate(WodlogRoute.Profile.route)
                 },
