@@ -12,7 +12,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.wodlog.app.domain.backup.BackupExportUseCase
+import com.wodlog.app.domain.backup.BackupImportApplyUseCase
 import com.wodlog.app.domain.backup.BackupImportPreview
+import com.wodlog.app.domain.backup.BackupImportResult
 import com.wodlog.app.domain.backup.BackupImportPreviewUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,15 +28,18 @@ data class SettingsExportState(
 
 data class SettingsImportState(
     val isImporting: Boolean = false,
+    val isApplying: Boolean = false,
     val message: String? = null,
     val errorMessage: String? = null,
     val preview: BackupImportPreview? = null,
+    val applyResult: BackupImportResult? = null,
 )
 
 @Composable
 fun SettingsRoute(
     backupExportUseCase: BackupExportUseCase,
     backupImportPreviewUseCase: BackupImportPreviewUseCase,
+    backupImportApplyUseCase: BackupImportApplyUseCase,
     onProfileClick: () -> Unit = {},
     onLifestyleClick: () -> Unit = {},
     onLicenseClick: () -> Unit = {},
@@ -122,6 +127,35 @@ fun SettingsRoute(
         onImportJsonClick = {
             importState = SettingsImportState(isImporting = true)
             openDocumentLauncher.launch(arrayOf("application/json", "text/*"))
+        },
+        onApplyImportClick = {
+            val backup = importState.preview?.backup
+            if (backup == null || importState.preview?.isValid != true) {
+                importState = importState.copy(
+                    errorMessage = "검증된 백업 미리보기가 필요합니다."
+                )
+                return@SettingsScreen
+            }
+
+            scope.launch {
+                importState = importState.copy(
+                    isApplying = true,
+                    message = null,
+                    errorMessage = null,
+                    applyResult = null,
+                )
+                val result = backupImportApplyUseCase.apply(backup)
+                importState = importState.copy(
+                    isApplying = false,
+                    message = if (result.isSuccess) {
+                        "JSON 가져오기를 적용했습니다. 기존 데이터는 삭제하지 않고 병합했습니다."
+                    } else {
+                        null
+                    },
+                    errorMessage = if (result.isSuccess) null else "JSON 가져오기 적용에 실패했습니다.",
+                    applyResult = result,
+                )
+            }
         },
         exportState = exportState,
         importState = importState

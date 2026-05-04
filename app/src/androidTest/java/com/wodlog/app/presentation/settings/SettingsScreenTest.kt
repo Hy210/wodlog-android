@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performScrollTo
 import com.wodlog.app.domain.backup.BackupImportError
 import com.wodlog.app.domain.backup.BackupImportErrorType
 import com.wodlog.app.domain.backup.BackupImportPreview
+import com.wodlog.app.domain.backup.BackupImportResult
 import com.wodlog.app.presentation.theme.WodlogTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -118,6 +119,9 @@ class SettingsScreenTest {
         composeRule.onNodeWithTag("settings-import-report-count")
             .performScrollTo()
             .assertIsDisplayed()
+        composeRule.onNodeWithTag("action-apply-import")
+            .performScrollTo()
+            .assertIsEnabled()
     }
 
     @Test
@@ -153,6 +157,9 @@ class SettingsScreenTest {
         composeRule.onNodeWithTag("settings-import-error-0")
             .performScrollTo()
             .assertIsDisplayed()
+        composeRule.onNodeWithTag("action-apply-import")
+            .performScrollTo()
+            .assertIsNotEnabled()
     }
 
     @Test
@@ -172,6 +179,69 @@ class SettingsScreenTest {
             .performScrollTo()
             .assertIsDisplayed()
         composeRule.onNodeWithTag("text-settings-import-error")
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun applyImportButton_callsCallbackWhenPreviewIsValid() {
+        var clickCount = 0
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    onApplyImportClick = { clickCount += 1 },
+                    importState = SettingsImportState(
+                        preview = BackupImportPreview(
+                            backup = null,
+                            isValid = true,
+                            errors = emptyList(),
+                            wodCount = 1,
+                            movementCount = 1,
+                            resultCount = 1,
+                            lifestyleLogCount = 1,
+                            aiReportCount = 1
+                        )
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("action-apply-import")
+            .performScrollTo()
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, clickCount)
+        }
+    }
+
+    @Test
+    fun settingsScreen_displaysApplyResultAndMergeNote() {
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(
+                    importState = SettingsImportState(
+                        message = "JSON 가져오기를 적용했습니다.",
+                        applyResult = BackupImportResult(
+                            isSuccess = true,
+                            importedWodCount = 1,
+                            importedMovementCount = 2,
+                            importedResultCount = 1,
+                            importedLifestyleLogCount = 1,
+                            importedAiReportCount = 1
+                        )
+                    )
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("settings-import-merge-note")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-apply-result")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-applied-wod-count")
             .performScrollTo()
             .assertIsDisplayed()
     }

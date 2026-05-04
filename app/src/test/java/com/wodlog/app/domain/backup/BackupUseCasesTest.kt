@@ -124,6 +124,48 @@ class BackupUseCasesTest {
         assertTrue(preview.errors.any { it.type == BackupImportErrorType.ORPHAN_AI_REPORT })
     }
 
+    @Test
+    fun `apply returns failure and does not write when preview is invalid`() = runTest {
+        val repository = FakeBackupRepository()
+        val useCase = BackupImportApplyUseCase(repository)
+
+        val result = useCase.apply("{ invalid json")
+
+        assertFalse(result.isSuccess)
+        assertEquals(BackupImportErrorType.INVALID_JSON, result.errors.single().type)
+        assertEquals(0, repository.writeCallCount)
+    }
+
+    @Test
+    fun `apply saves valid backup data in relationship order`() = runTest {
+        val repository = FakeBackupRepository()
+        val useCase = BackupImportApplyUseCase(repository)
+
+        val result = useCase.apply(sampleBackup())
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, result.importedWodCount)
+        assertEquals(1, result.importedMovementCount)
+        assertEquals(1, result.importedResultCount)
+        assertEquals(1, result.importedLifestyleLogCount)
+        assertEquals(1, result.importedAiReportCount)
+        assertEquals(
+            listOf("profile", "wod", "section", "movement", "result", "lifestyle", "report"),
+            repository.savedOperations
+        )
+    }
+
+    @Test
+    fun `apply returns failure when repository save throws`() = runTest {
+        val repository = FakeBackupRepository(failOnSave = true)
+        val useCase = BackupImportApplyUseCase(repository)
+
+        val result = useCase.apply(sampleBackup())
+
+        assertFalse(result.isSuccess)
+        assertTrue(result.errors.any { it.type == BackupImportErrorType.IMPORT_FAILED })
+    }
+
     private fun sampleBackup(): WodlogBackup =
         createWodlogBackup(
             exportedAt = instant,
@@ -214,13 +256,17 @@ class BackupUseCasesTest {
 
     private inner class FakeBackupRepository(
         private val profile: UserProfile? = sampleProfile(),
+        private val failOnSave: Boolean = false,
     ) : WodlogRepository {
         var writeCallCount = 0
+        val savedOperations = mutableListOf<String>()
 
         override suspend fun getUserProfile(): UserProfile? = profile
 
         override suspend fun saveUserProfile(profile: UserProfile): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "profile"
             return profile.id
         }
 
@@ -235,7 +281,9 @@ class BackupUseCasesTest {
         override suspend fun getAllWods(): List<Wod> = listOf(sampleWod(10L), sampleWod(11L))
 
         override suspend fun saveWod(wod: Wod): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "wod"
             return wod.id
         }
 
@@ -247,7 +295,9 @@ class BackupUseCasesTest {
             if (wodId == 10L) listOf(sampleSection()) else emptyList()
 
         override suspend fun saveWodSection(section: WodSection): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "section"
             return section.id
         }
 
@@ -259,7 +309,9 @@ class BackupUseCasesTest {
             listOf(sampleMovement(id = wodId + 20L, wodId = wodId))
 
         override suspend fun saveMovement(movement: Movement): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "movement"
             return movement.id
         }
 
@@ -271,7 +323,9 @@ class BackupUseCasesTest {
             if (wodId == 10L) sampleResult() else null
 
         override suspend fun saveWodResult(result: WodResult): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "result"
             return result.id
         }
 
@@ -284,7 +338,9 @@ class BackupUseCasesTest {
         override suspend fun getAllLifestyleLogs(): List<LifestyleLog> = listOf(sampleLifestyle())
 
         override suspend fun saveLifestyleLog(log: LifestyleLog): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "lifestyle"
             return log.id
         }
 
@@ -292,12 +348,18 @@ class BackupUseCasesTest {
             if (wodId == 10L) listOf(sampleReport()) else emptyList()
 
         override suspend fun saveAiReport(report: AiReport): Long {
+            maybeFail()
             writeCallCount++
+            savedOperations += "report"
             return report.id
         }
 
         override suspend fun deleteAiReport(id: Long) {
             writeCallCount++
+        }
+
+        private fun maybeFail() {
+            if (failOnSave) error("save failed")
         }
     }
 }

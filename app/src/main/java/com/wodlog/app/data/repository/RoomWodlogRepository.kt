@@ -68,7 +68,10 @@ class RoomWodlogRepository(
             return wodDao.insert(wod.toEntity())
         }
 
-        wodDao.update(wod.toEntity())
+        val updatedRows = wodDao.update(wod.toEntity())
+        if (updatedRows == 0) {
+            wodDao.insert(wod.toEntity())
+        }
         return wod.id
     }
 
@@ -85,7 +88,10 @@ class RoomWodlogRepository(
             return wodSectionDao.insert(section.toEntity())
         }
 
-        wodSectionDao.update(section.toEntity())
+        val updatedRows = wodSectionDao.update(section.toEntity())
+        if (updatedRows == 0) {
+            wodSectionDao.insert(section.toEntity())
+        }
         return section.id
     }
 
@@ -102,7 +108,10 @@ class RoomWodlogRepository(
             return movementDao.insert(movement.toEntity())
         }
 
-        movementDao.update(movement.toEntity())
+        val updatedRows = movementDao.update(movement.toEntity())
+        if (updatedRows == 0) {
+            movementDao.insert(movement.toEntity())
+        }
         return movement.id
     }
 
@@ -119,7 +128,10 @@ class RoomWodlogRepository(
             return wodResultDao.insert(result.toEntity())
         }
 
-        wodResultDao.update(result.toEntity())
+        val updatedRows = wodResultDao.update(result.toEntity())
+        if (updatedRows == 0) {
+            wodResultDao.insert(result.toEntity())
+        }
         return result.id
     }
 
@@ -140,7 +152,10 @@ class RoomWodlogRepository(
             return lifestyleLogDao.insert(log.toEntity())
         }
 
-        lifestyleLogDao.update(log.toEntity())
+        val updatedRows = lifestyleLogDao.update(log.toEntity())
+        if (updatedRows == 0) {
+            lifestyleLogDao.insert(log.toEntity())
+        }
         return log.id
     }
 
@@ -153,7 +168,10 @@ class RoomWodlogRepository(
             return aiReportDao.insert(report.toEntity())
         }
 
-        aiReportDao.update(report.toEntity())
+        val updatedRows = aiReportDao.update(report.toEntity())
+        if (updatedRows == 0) {
+            aiReportDao.insert(report.toEntity())
+        }
         return report.id
     }
 

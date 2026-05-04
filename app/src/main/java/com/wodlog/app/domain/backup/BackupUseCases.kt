@@ -127,3 +127,68 @@ class BackupImportPreviewUseCase {
         return errors
     }
 }
+
+class BackupImportApplyUseCase(
+    private val repository: WodlogRepository,
+    private val previewUseCase: BackupImportPreviewUseCase = BackupImportPreviewUseCase(),
+) {
+    suspend fun apply(json: String): BackupImportResult {
+        val preview = previewUseCase.preview(json)
+        val backup = preview.backup
+        if (!preview.isValid || backup == null) {
+            return BackupImportResult(
+                isSuccess = false,
+                errors = preview.errors,
+            )
+        }
+
+        return apply(backup)
+    }
+
+    suspend fun apply(backup: WodlogBackup): BackupImportResult {
+        val preview = previewUseCase.preview(BackupJsonSerializer.encode(backup))
+        if (!preview.isValid) {
+            return BackupImportResult(
+                isSuccess = false,
+                errors = preview.errors,
+            )
+        }
+
+        return runCatching {
+            backup.profile?.let { repository.saveUserProfile(it.toDomain()) }
+
+            val wods = backup.wods.map { it.toDomain() }
+            val sections = backup.sections.map { it.toDomain() }
+            val movements = backup.movements.map { it.toDomain() }
+            val results = backup.results.map { it.toDomain() }
+            val lifestyleLogs = backup.lifestyleLogs.map { it.toDomain() }
+            val aiReports = backup.aiReports.map { it.toDomain() }
+
+            wods.forEach { repository.saveWod(it) }
+            sections.forEach { repository.saveWodSection(it) }
+            movements.forEach { repository.saveMovement(it) }
+            results.forEach { repository.saveWodResult(it) }
+            lifestyleLogs.forEach { repository.saveLifestyleLog(it) }
+            aiReports.forEach { repository.saveAiReport(it) }
+
+            BackupImportResult(
+                isSuccess = true,
+                importedWodCount = wods.size,
+                importedMovementCount = movements.size,
+                importedResultCount = results.size,
+                importedLifestyleLogCount = lifestyleLogs.size,
+                importedAiReportCount = aiReports.size,
+            )
+        }.getOrElse { error ->
+            BackupImportResult(
+                isSuccess = false,
+                errors = listOf(
+                    BackupImportError(
+                        type = BackupImportErrorType.IMPORT_FAILED,
+                        message = error.message ?: "Backup import failed.",
+                    ),
+                ),
+            )
+        }
+    }
+}

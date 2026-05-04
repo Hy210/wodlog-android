@@ -25,6 +25,7 @@ fun SettingsScreen(
     onLicenseClick: () -> Unit = {},
     onExportJsonClick: () -> Unit = {},
     onImportJsonClick: () -> Unit = {},
+    onApplyImportClick: () -> Unit = {},
     exportState: SettingsExportState = SettingsExportState(),
     importState: SettingsImportState = SettingsImportState(),
     appVersion: String = "0.1.0-dev",
@@ -105,6 +106,21 @@ fun SettingsScreen(
                 Text(if (importState.isImporting) "JSON 검증 중" else "JSON 가져오기 미리보기")
             }
             ImportStatus(importState = importState)
+            OutlinedButton(
+                onClick = onApplyImportClick,
+                enabled = importState.preview?.isValid == true &&
+                    !importState.isImporting &&
+                    !importState.isApplying,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("action-apply-import")
+            ) {
+                Text(if (importState.isApplying) "가져오기 적용 중" else "가져오기 적용")
+            }
+            Text(
+                text = "기존 데이터는 삭제하지 않고 백업 데이터를 병합합니다.",
+                modifier = Modifier.testTag("settings-import-merge-note")
+            )
         }
 
         SettingsSection(
@@ -181,6 +197,45 @@ private fun ImportStatus(importState: SettingsImportState) {
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.testTag("text-settings-import-error")
         )
+    }
+    if (importState.isApplying) {
+        Text(
+            text = "검증된 백업을 로컬 DB에 병합하고 있습니다.",
+            modifier = Modifier.testTag("settings-import-apply-progress")
+        )
+    }
+    importState.applyResult?.let { result ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("settings-import-apply-result"),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = if (result.isSuccess) "적용 결과: 성공" else "적용 결과: 실패",
+                modifier = Modifier.testTag("settings-import-apply-status")
+            )
+            Text(
+                text = "Imported WOD: ${result.importedWodCount}",
+                modifier = Modifier.testTag("settings-import-applied-wod-count")
+            )
+            Text(
+                text = "Imported Movement: ${result.importedMovementCount}",
+                modifier = Modifier.testTag("settings-import-applied-movement-count")
+            )
+            Text(
+                text = "Imported Result: ${result.importedResultCount}",
+                modifier = Modifier.testTag("settings-import-applied-result-count")
+            )
+            Text(
+                text = "Imported Lifestyle: ${result.importedLifestyleLogCount}",
+                modifier = Modifier.testTag("settings-import-applied-lifestyle-count")
+            )
+            Text(
+                text = "Imported AI Report: ${result.importedAiReportCount}",
+                modifier = Modifier.testTag("settings-import-applied-report-count")
+            )
+        }
     }
     importState.preview?.let { preview ->
         Column(
