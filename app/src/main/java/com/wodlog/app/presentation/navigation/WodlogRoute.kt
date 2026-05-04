@@ -27,7 +27,12 @@ sealed class WodlogRoute(
 
         fun createRoute(wodId: Long): String = "prompt/$wodId"
     }
-    data object ReportEdit : WodlogRoute("report-edit", "Report Edit")
+    data object ReportEdit : WodlogRoute("report-edit/{wodId}", "Report Edit") {
+        const val wodIdArgument = "wodId"
+        const val placeholderRoute = "report-edit"
+
+        fun createRoute(wodId: Long): String = "report-edit/$wodId"
+    }
     data object Profile : WodlogRoute("profile", "Profile")
     data object Lifestyle : WodlogRoute("lifestyle", "Lifestyle")
 

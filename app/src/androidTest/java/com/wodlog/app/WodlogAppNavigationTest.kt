@@ -146,6 +146,7 @@ class WodlogAppNavigationTest {
         composeRule.onNodeWithTag("action-open-report").performClick()
 
         composeRule.onNodeWithTag("screen-report-edit").assertIsDisplayed()
+        composeRule.onNodeWithTag("input-report-answer").assertIsDisplayed()
     }
 
     private fun createWodAndOpenDetail(title: String) {
