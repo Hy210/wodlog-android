@@ -78,7 +78,7 @@ fun HomeScreen(
 
         WodLogCard(
             title = "기록 요약",
-            subtitle = "Phase 3에서는 진입 경험을 먼저 정리합니다"
+            subtitle = "최근 기록이 쌓이면 홈에서 흐름을 바로 확인할 수 있습니다."
         ) {
             WodLogMetricChip(
                 label = "최근 기록",
@@ -93,7 +93,7 @@ fun HomeScreen(
 
         WodLogCard(
             title = "다음 단계",
-            subtitle = "WOD를 저장하면 Calendar와 Compare에서 확인할 수 있습니다"
+            subtitle = "WOD를 저장하면 Calendar와 Compare에서 확인할 수 있습니다."
         ) {
             Text(
                 text = "기록이 쌓이면 최근 3회 비교와 날짜별 기록 흐름이 더 선명하게 보입니다.",

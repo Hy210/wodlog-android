@@ -132,7 +132,7 @@ fun ReportEditScreen(
 
         WodLogCard(
             title = "답변 본문",
-            subtitle = "긴 답변도 편하게 읽고 수정할 수 있습니다.",
+            subtitle = "긴 답변도 읽기 쉽도록 여백을 두고 저장합니다.",
             modifier = Modifier.fillMaxWidth()
         ) {
             WodLogTextField(

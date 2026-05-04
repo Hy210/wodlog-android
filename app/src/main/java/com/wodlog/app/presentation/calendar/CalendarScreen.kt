@@ -143,7 +143,7 @@ private fun CalendarHeader(
 ) {
     WodLogCard(
         title = "월간 기록",
-        subtitle = "기록이 있는 날짜를 바로 확인하세요",
+        subtitle = "기록이 있는 날짜를 바로 확인하세요.",
         outlined = false
     ) {
         Row(
