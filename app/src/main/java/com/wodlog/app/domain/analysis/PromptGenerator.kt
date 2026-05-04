@@ -10,6 +10,9 @@ import java.util.Locale
 object PromptGenerator {
     fun generate(input: PromptInput): String {
         return buildString {
+            appendLine("너는 CrossFit 코치이자 운동 기록 분석가다.")
+            appendLine("아래 WOD 기록을 바탕으로 사용자가 다음 훈련을 더 잘 준비할 수 있게 분석해줘.")
+            appendLine()
             appendLine("ChatGPT 붙여넣기용 운동 기록 분석 질문지")
             appendLine()
             appendLine("## 목적")

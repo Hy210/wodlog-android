@@ -138,14 +138,14 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun loadProfile_whenProfileDoesNotExist_keepsEmptyState() = runTest {
+    fun loadProfile_whenProfileDoesNotExist_setsTodayAsStartDateDefault() = runTest {
         viewModel.loadProfile()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertEquals("", state.heightCmInput)
         assertEquals("", state.weightKgInput)
-        assertEquals("", state.crossfitStartDateInput)
+        assertEquals("2026-05-03", state.crossfitStartDateInput)
         assertEquals(0L, state.trainingDays)
         assertFalse(state.hasProfile)
         assertFalse(state.isLoading)

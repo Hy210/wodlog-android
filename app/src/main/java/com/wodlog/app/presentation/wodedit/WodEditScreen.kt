@@ -1,4 +1,4 @@
-package com.wodlog.app.presentation.wodedit
+﻿package com.wodlog.app.presentation.wodedit
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +25,7 @@ import com.wodlog.app.domain.model.MovementCategory
 import com.wodlog.app.domain.model.WodType
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogDangerButton
+import com.wodlog.app.presentation.components.WodLogDateField
 import com.wodlog.app.presentation.components.WodLogEmptyState
 import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSecondaryButton
@@ -123,14 +124,12 @@ fun WodEditScreen(
             outlined = false,
             modifier = Modifier.fillMaxWidth()
         ) {
-            WodLogTextField(
+            WodLogDateField(
                 value = state.dateInput,
                 onValueChange = onDateChange,
                 label = "날짜",
                 placeholder = "yyyy-MM-dd",
-                supportingText = "예: 2026-05-04",
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = null,
                 modifier = Modifier.testTag("input-wod-date")
             )
             WodLogTextField(

@@ -57,7 +57,7 @@ fun WodlogApp() {
                             }
                         },
                         label = { Text(route.label) },
-                        icon = {}
+                        icon = { Text(route.navigationIcon()) }
                     )
                 }
             }
@@ -69,4 +69,12 @@ fun WodlogApp() {
             modifier = Modifier.padding(innerPadding)
         )
     }
+}
+
+private fun WodlogRoute.navigationIcon(): String = when (this) {
+    WodlogRoute.Home -> "⌂"
+    WodlogRoute.Calendar -> "□"
+    WodlogRoute.Compare -> "≋"
+    WodlogRoute.Settings -> "⚙"
+    else -> ""
 }

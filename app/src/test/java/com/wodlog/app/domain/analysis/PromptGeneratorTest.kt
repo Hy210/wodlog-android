@@ -20,6 +20,14 @@ class PromptGeneratorTest {
     private val now = Instant.parse("2026-05-04T00:00:00Z")
 
     @Test
+    fun generate_includesCoachRoleInstruction() {
+        val prompt = PromptGenerator.generate(sampleInput())
+
+        assertTrue(prompt.contains("너는 CrossFit 코치이자 운동 기록 분석가다."))
+        assertTrue(prompt.contains("다음 훈련을 더 잘 준비할 수 있게 분석해줘."))
+    }
+
+    @Test
     fun generate_includesCurrentWodDateTitleAndType() {
         val prompt = PromptGenerator.generate(sampleInput())
 

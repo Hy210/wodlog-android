@@ -77,6 +77,35 @@ fun WodDetailScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
+        if (state.wod == null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                WodLogSecondaryButton(
+                    text = "결과 입력",
+                    onClick = onEditResultClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("action-edit-result")
+                )
+                WodLogSecondaryButton(
+                    text = "질문지 만들기",
+                    onClick = onPromptClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("action-open-prompt")
+                )
+            }
+            WodLogPrimaryButton(
+                text = "GPT 답변 보기",
+                onClick = onReportClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("action-open-report")
+            )
+        }
+
         when {
             state.isLoading -> {
                 WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {

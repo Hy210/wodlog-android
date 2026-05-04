@@ -58,7 +58,7 @@ class WodEditScreenTest {
         composeRule.onNodeWithTag("action-add-section").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("input-section-title-0").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("input-section-memo-0").assertIsDisplayed()
+        composeRule.onNodeWithTag("input-section-memo-0").performScrollTo().assertIsDisplayed()
     }
 
     @Test

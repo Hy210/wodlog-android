@@ -1,4 +1,4 @@
-package com.wodlog.app.presentation.profile
+﻿package com.wodlog.app.presentation.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.wodlog.app.presentation.components.WodLogCard
+import com.wodlog.app.presentation.components.WodLogDateField
 import com.wodlog.app.presentation.components.WodLogMetricChip
 import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSectionHeader
@@ -161,14 +162,12 @@ fun ProfileScreen(
             subtitle = "시작일을 기준으로 운동 기간을 계산합니다.",
             modifier = Modifier.fillMaxWidth()
         ) {
-            WodLogTextField(
+            WodLogDateField(
                 value = state.crossfitStartDateInput,
                 onValueChange = onStartDateChange,
                 label = "CrossFit 시작일",
                 placeholder = "yyyy-MM-dd",
-                supportingText = "예: 2024-01-15",
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = "직접 입력하거나 달력에서 선택하세요.",
                 modifier = Modifier.testTag("input-profile-start-date")
             )
         }

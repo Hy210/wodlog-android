@@ -1,4 +1,4 @@
-package com.wodlog.app.presentation.compare
+﻿package com.wodlog.app.presentation.compare
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -66,9 +66,9 @@ class CompareScreenTest {
         assertTrue(composeRule.onAllNodesWithText("Distance").fetchSemanticsNodes().isNotEmpty())
         assertTrue(composeRule.onAllNodesWithText("Calories").fetchSemanticsNodes().isNotEmpty())
         composeRule.onNodeWithTag("compare-category-breakdown").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("STRENGTH: 2개, 67%").assertIsDisplayed()
+        composeRule.onNodeWithText("STRENGTH: 2개 67%").assertIsDisplayed()
         composeRule.onNodeWithTag("compare-neutral-summary").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("정량 지표만 표시합니다.").assertIsDisplayed()
+        composeRule.onNodeWithText("?뺣웾 吏?쒕쭔 ?쒖떆?⑸땲??").assertIsDisplayed()
     }
 
     @Test
@@ -129,8 +129,8 @@ class CompareScreenTest {
                 )
             ),
             neutralSummary = listOf(
-                "최근 3회 기록을 날짜순으로 요약했습니다.",
-                "정량 지표만 표시합니다."
+                "理쒓렐 3??湲곕줉???좎쭨?쒖쑝濡??붿빟?덉뒿?덈떎.",
+                "?뺣웾 吏?쒕쭔 ?쒖떆?⑸땲??"
             ),
             hasEnoughDataForComparison = true
         ),
@@ -158,3 +158,4 @@ class CompareScreenTest {
         movementCategoryCounts = mapOf(MovementCategory.STRENGTH to 1)
     )
 }
+

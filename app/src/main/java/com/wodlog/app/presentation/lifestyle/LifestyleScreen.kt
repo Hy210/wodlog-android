@@ -1,4 +1,4 @@
-package com.wodlog.app.presentation.lifestyle
+﻿package com.wodlog.app.presentation.lifestyle
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.wodlog.app.presentation.components.WodLogCard
+import com.wodlog.app.presentation.components.WodLogDateField
 import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSectionHeader
 import com.wodlog.app.presentation.components.WodLogStatusChip
@@ -102,14 +103,12 @@ fun LifestyleScreen(
             outlined = false,
             modifier = Modifier.fillMaxWidth()
         ) {
-            WodLogTextField(
+            WodLogDateField(
                 value = state.weekStartDateInput,
                 onValueChange = onWeekStartDateChange,
                 label = "주 시작일",
                 placeholder = "yyyy-MM-dd",
-                supportingText = "월요일 날짜를 입력하세요.",
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = "월요일 날짜를 직접 입력하거나 달력에서 선택하세요.",
                 modifier = Modifier.testTag("input-lifestyle-week-start")
             )
         }

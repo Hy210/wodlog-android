@@ -23,6 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.wodlog.app.domain.analysis.CategoryShare
 import com.wodlog.app.domain.analysis.ComparisonLabel
@@ -33,7 +35,7 @@ import com.wodlog.app.domain.model.WodType
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogEmptyState
 import com.wodlog.app.presentation.components.WodLogMetricChip
-import com.wodlog.app.presentation.components.WodLogPrimaryButton
+import com.wodlog.app.presentation.components.WodLogSecondaryButton
 import com.wodlog.app.presentation.components.WodLogSectionHeader
 import com.wodlog.app.presentation.components.WodLogStatusChip
 import com.wodlog.app.presentation.components.WodLogStatusChipTone
@@ -66,7 +68,25 @@ fun CompareScreen(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        CompareHeader(onRefreshClick = onRefreshClick)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "최근 3회 비교",
+                style = MaterialTheme.typography.headlineMedium
+            )
+            WodLogSecondaryButton(
+                text = "새로고침",
+                onClick = onRefreshClick,
+                modifier = Modifier
+                    .testTag("action-refresh-compare")
+                    .semantics { contentDescription = "비교 데이터 새로고침" }
+            )
+        }
+
+        CompareHeader()
 
         when {
             state.isLoading -> CompareLoading()
@@ -86,39 +106,17 @@ fun CompareScreen(
 }
 
 @Composable
-private fun CompareHeader(
-    onRefreshClick: () -> Unit
-) {
+private fun CompareHeader() {
     WodLogCard(
-        title = "최근 3회 비교",
-        subtitle = "반복되는 WOD를 단순 순위로 판단하지 않고 지표만 요약합니다",
+        title = "기록 흐름",
+        subtitle = "서로 다른 WOD를 순위로 판단하지 않고 정량 지표만 요약합니다.",
         outlined = false
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "기록 흐름",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "reps, load, distance, calories를 한눈에 봅니다.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            WodLogPrimaryButton(
-                text = "새로고침",
-                onClick = onRefreshClick,
-                modifier = Modifier.testTag("action-refresh-compare")
-            )
-        }
+        Text(
+            text = "reps, load, distance, calories를 나누어 봅니다.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -242,9 +240,7 @@ private fun CategoryBreakdown(shares: List<CategoryShare>) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "${share.category.name}: ${share.count}개 ${formatPercent(share.ratio)}"
-                    )
+                    Text(text = "${share.category.name}: ${share.count}개 ${formatPercent(share.ratio)}")
                     WodLogStatusChip(
                         text = share.category.displayName(),
                         tone = WodLogStatusChipTone.Neutral
@@ -259,7 +255,7 @@ private fun CategoryBreakdown(shares: List<CategoryShare>) {
 private fun NeutralSummary(lines: List<String>) {
     WodLogCard(
         title = "요약",
-        subtitle = "자동 판단 없이 확인 가능한 정보만 표시합니다",
+        subtitle = "자동 판단 없이 확인 가능한 정보만 표시합니다.",
         modifier = Modifier
             .fillMaxWidth()
             .testTag("compare-neutral-summary")

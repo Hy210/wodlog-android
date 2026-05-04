@@ -33,7 +33,10 @@ class ProfileViewModel(
             loadedProfile = profile
 
             _uiState.value = if (profile == null) {
-                ProfileUiState()
+                ProfileUiState(
+                    crossfitStartDateInput = WodlogDateUtils.formatDate(todayProvider()),
+                    trainingDays = 0L
+                )
             } else {
                 ProfileUiState(
                     heightCmInput = profile.heightCm?.toInputString().orEmpty(),
