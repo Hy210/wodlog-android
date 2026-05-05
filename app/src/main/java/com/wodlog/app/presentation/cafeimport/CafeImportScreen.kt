@@ -40,6 +40,8 @@ import com.wodlog.app.domain.model.ImportedWodText
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSecondaryButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun CafeImportScreen(
@@ -90,6 +92,7 @@ fun CafeImportScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .testTag("screen-cafe-import-webview")
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -198,7 +201,7 @@ fun CafeImportScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .height(820.dp)
                 .testTag("cafe-import-webview-container")
         ) {
             CafeWebView(
@@ -438,7 +441,6 @@ private fun CafeWebView(
     AndroidView(
         modifier = modifier
             .fillMaxHeight()
-            .height(720.dp)
             .testTag("cafe-import-webview"),
         factory = { context ->
             WebView(context).apply {
