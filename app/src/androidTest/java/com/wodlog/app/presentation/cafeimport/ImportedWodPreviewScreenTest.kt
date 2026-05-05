@@ -49,6 +49,8 @@ class ImportedWodPreviewScreenTest {
 
         composeRule.onNodeWithTag("screen-imported-wod-preview").assertIsDisplayed()
         composeRule.onNodeWithTag("text-imported-wod-preview-missing").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-imported-wod-preview-fallback").assertIsDisplayed()
+        composeRule.onNodeWithTag("action-create-manual-wod-from-preview").assertIsDisplayed()
         composeRule.onNodeWithTag("action-back-imported-wod-preview").assertIsDisplayed()
     }
 }

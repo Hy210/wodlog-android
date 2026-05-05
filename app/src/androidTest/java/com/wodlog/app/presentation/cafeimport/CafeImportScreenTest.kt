@@ -25,6 +25,9 @@ class CafeImportScreenTest {
 
         composeRule.onNodeWithTag("screen-cafe-import-missing-source").assertIsDisplayed()
         composeRule.onNodeWithTag("text-cafe-import-missing-source").assertIsDisplayed()
+        composeRule.onNodeWithTag("text-cafe-import-manual-fallback").assertIsDisplayed()
+        composeRule.onNodeWithTag("action-open-cafe-source-settings").assertIsDisplayed()
+        composeRule.onNodeWithTag("action-create-manual-wod-from-cafe-import").assertIsDisplayed()
         composeRule.onNodeWithTag("action-back-from-cafe-import-missing-source").assertIsDisplayed()
     }
 }

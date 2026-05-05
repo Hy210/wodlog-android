@@ -45,6 +45,8 @@ fun CafeImportScreen(
     cafeSource: CafeSource?,
     cafeSourceId: Long,
     onBackClick: () -> Unit,
+    onOpenCafeSourceSettings: () -> Unit = {},
+    onCreateManualWod: () -> Unit = {},
     onImportedWodTextReady: (ImportedWodText) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -52,6 +54,8 @@ fun CafeImportScreen(
         CafeImportMissingSource(
             cafeSourceId = cafeSourceId,
             onBackClick = onBackClick,
+            onOpenCafeSourceSettings = onOpenCafeSourceSettings,
+            onCreateManualWod = onCreateManualWod,
             modifier = modifier
         )
         return
@@ -161,7 +165,7 @@ fun CafeImportScreen(
                         val message = if (javascriptResult.isBlank() || javascriptResult.trim() == "null") {
                             "본문을 가져오지 못했습니다. 게시글 화면에서 다시 시도해 주세요."
                         } else {
-                            "가져올 본문을 찾지 못했습니다. 복사해서 WOD 추가에 직접 붙여넣을 수 있습니다."
+                            "가져올 본문을 찾지 못했습니다. 게시글 화면에서 다시 시도해 주세요. 가져오기가 어렵다면 WOD 추가에서 직접 입력할 수 있습니다."
                         }
                         state = state.copy(
                             isExtractingImportedText = false,
@@ -501,8 +505,15 @@ private fun CafeWebView(
 private fun CafeImportMissingSource(
     cafeSourceId: Long,
     onBackClick: () -> Unit,
+    onOpenCafeSourceSettings: () -> Unit,
+    onCreateManualWod: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val message = if (cafeSourceId == 0L) {
+        "등록된 카페 소스가 없습니다. 설정에서 게시판 URL을 먼저 등록해 주세요."
+    } else {
+        "카페 소스를 찾지 못했습니다. 설정을 확인해 주세요."
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -515,15 +526,35 @@ private fun CafeImportMissingSource(
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = "선택한 카페 소스를 찾지 못했습니다. 설정에서 URL을 확인해 주세요.",
+            text = message,
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.testTag("text-cafe-import-missing-source")
         )
         Text(
+            text = "가져오기가 어렵다면 WOD 추가에서 직접 입력할 수 있습니다.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag("text-cafe-import-manual-fallback")
+        )
+        Text(
             text = "CafeSource id: $cafeSourceId",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        WodLogPrimaryButton(
+            text = "설정에서 URL 등록",
+            onClick = onOpenCafeSourceSettings,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("action-open-cafe-source-settings")
+        )
+        WodLogSecondaryButton(
+            text = "WOD 추가로 직접 입력",
+            onClick = onCreateManualWod,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("action-create-manual-wod-from-cafe-import")
         )
         WodLogSecondaryButton(
             text = "뒤로가기",

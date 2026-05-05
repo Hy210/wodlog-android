@@ -29,6 +29,7 @@ import com.wodlog.app.presentation.components.WodLogSecondaryButton
 fun ImportedWodPreviewScreen(
     importedWodText: ImportedWodText?,
     onBackClick: () -> Unit,
+    onCreateManualWod: () -> Unit = {},
     onApplyToWodEdit: (ImportedWodText) -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
@@ -49,10 +50,23 @@ fun ImportedWodPreviewScreen(
 
         if (importedWodText == null) {
             Text(
-                text = "가져온 본문을 찾지 못했습니다. 다시 가져오기를 시도해 주세요.",
+                text = "가져온 WOD 내용이 없습니다. 다시 가져오기를 시도해 주세요.",
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.testTag("text-imported-wod-preview-missing")
+            )
+            Text(
+                text = "가져오기가 어렵다면 WOD 추가에서 직접 입력할 수 있습니다.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("text-imported-wod-preview-fallback")
+            )
+            WodLogPrimaryButton(
+                text = "WOD 추가로 직접 입력",
+                onClick = onCreateManualWod,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("action-create-manual-wod-from-preview")
             )
             WodLogSecondaryButton(
                 text = "뒤로",

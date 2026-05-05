@@ -134,7 +134,8 @@ fun WodlogNavHost(
             val wodEditViewModel: WodEditViewModel = viewModel(
                 factory = WodEditViewModelFactory(
                     repository = repository,
-                    importedWodText = importedWodText
+                    importedWodText = importedWodText,
+                    showImportedPrefillMissingMessage = importedWodText == null
                 )
             )
             WodEditRoute(
@@ -337,6 +338,12 @@ fun WodlogNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
+                onOpenCafeSourceSettings = {
+                    navController.navigate(WodlogRoute.CafeSourceSettings.route)
+                },
+                onCreateManualWod = {
+                    navController.navigate(WodlogRoute.WodEdit.route)
+                },
                 onImportedWodTextReady = { importedWodText ->
                     ImportedWodPreviewHolder.current = importedWodText
                     navController.navigate(WodlogRoute.ImportedWodPreview.route)
@@ -361,6 +368,12 @@ fun WodlogNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
+                onOpenCafeSourceSettings = {
+                    navController.navigate(WodlogRoute.CafeSourceSettings.route)
+                },
+                onCreateManualWod = {
+                    navController.navigate(WodlogRoute.WodEdit.route)
+                },
                 onImportedWodTextReady = { importedWodText ->
                     ImportedWodPreviewHolder.current = importedWodText
                     navController.navigate(WodlogRoute.ImportedWodPreview.route)
@@ -372,6 +385,9 @@ fun WodlogNavHost(
                 importedWodText = ImportedWodPreviewHolder.current,
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onCreateManualWod = {
+                    navController.navigate(WodlogRoute.WodEdit.route)
                 },
                 onApplyToWodEdit = { importedWodText ->
                     ImportedWodPreviewHolder.editorPrefill = importedWodText

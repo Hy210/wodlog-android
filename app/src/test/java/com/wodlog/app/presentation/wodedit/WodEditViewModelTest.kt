@@ -65,6 +65,26 @@ class WodEditViewModelTest {
     }
 
     @Test
+    fun initialState_withMissingImportedPrefill_startsGeneralInputWithMessage() {
+        val importedViewModel = WodEditViewModel(
+            repository = repository,
+            importedWodText = null,
+            showImportedPrefillMissingMessage = true,
+            todayProvider = { today },
+            nowProvider = { now },
+            localIdProvider = { localIds.removeFirst() }
+        )
+
+        val state = importedViewModel.uiState.value
+        assertEquals("2026-05-03", state.dateInput)
+        assertEquals("", state.titleInput)
+        assertEquals("", state.rawTextInput)
+        assertEquals(WodSourceType.MANUAL, state.sourceType)
+        assertEquals("가져온 내용이 없어 일반 WOD 입력으로 시작합니다.", state.message)
+        assertTrue(repository.savedWods.isEmpty())
+    }
+
+    @Test
     fun initialState_withImportedWod_prefillsEditableInputsWithoutSaving() {
         val importedAt = Instant.parse("2026-05-02T12:00:00Z")
         val importedViewModel = WodEditViewModel(

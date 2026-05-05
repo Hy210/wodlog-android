@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 class WodEditViewModel(
     private val repository: WodlogRepository,
     importedWodText: ImportedWodText? = null,
+    showImportedPrefillMissingMessage: Boolean = false,
     todayProvider: () -> LocalDate = { LocalDate.now() },
     private val nowProvider: () -> Instant = { Instant.now() },
     private val localIdProvider: () -> String = { UUID.randomUUID().toString() }
@@ -31,7 +32,14 @@ class WodEditViewModel(
     private val today = todayProvider()
     private val _uiState = MutableStateFlow(
         importedWodText?.toPrefilledState(today)
-            ?: WodEditUiState(dateInput = WodlogDateUtils.formatDate(today))
+            ?: WodEditUiState(
+                dateInput = WodlogDateUtils.formatDate(today),
+                message = if (showImportedPrefillMissingMessage) {
+                    "가져온 내용이 없어 일반 WOD 입력으로 시작합니다."
+                } else {
+                    null
+                }
+            )
     )
     val uiState: StateFlow<WodEditUiState> = _uiState.asStateFlow()
 
