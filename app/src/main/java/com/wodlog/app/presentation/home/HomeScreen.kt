@@ -7,12 +7,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.wodlog.app.domain.model.CafeSource
+import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogEmptyState
 import com.wodlog.app.presentation.components.WodLogMetricChip
@@ -22,8 +31,36 @@ import com.wodlog.app.presentation.components.WodLogStatusChip
 import com.wodlog.app.presentation.components.WodLogStatusChipTone
 
 @Composable
+fun HomeRoute(
+    repository: WodlogRepository,
+    onCreateWodClick: () -> Unit,
+    onOpenCafeImport: (Long) -> Unit
+) {
+    val viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(repository)
+    )
+    val state by viewModel.uiState.collectAsState()
+
+    HomeScreen(
+        state = state,
+        onCreateWodClick = onCreateWodClick,
+        onImportWodClick = {
+            viewModel.onImportClick(onOpenCafeImport)
+        },
+        onCafeSourceSelected = { cafeSource ->
+            viewModel.onCafeSourceSelected(cafeSource, onOpenCafeImport)
+        },
+        onDismissCafeSourcePicker = viewModel::dismissCafeSourcePicker
+    )
+}
+
+@Composable
 fun HomeScreen(
-    onCreateWodClick: () -> Unit = {}
+    state: HomeUiState = HomeUiState(isLoadingCafeSources = false),
+    onCreateWodClick: () -> Unit = {},
+    onImportWodClick: () -> Unit = {},
+    onCafeSourceSelected: (CafeSource) -> Unit = {},
+    onDismissCafeSourcePicker: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -67,6 +104,21 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .testTag("action-create-wod")
                     )
+                    if (state.cafeSources.isNotEmpty()) {
+                        ImportWodButton(
+                            onClick = onImportWodClick,
+                            enabled = !state.isLoadingCafeSources,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("action-import-wod")
+                        )
+                        Text(
+                            text = "설정한 네이버카페에서 오늘 WOD를 가져옵니다.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("home-import-wod-helper")
+                        )
+                    }
                 }
             )
         }
@@ -102,4 +154,77 @@ fun HomeScreen(
             )
         }
     }
+
+    if (state.isCafeSourcePickerVisible) {
+        CafeSourcePickerDialog(
+            cafeSources = state.cafeSources,
+            onSelect = onCafeSourceSelected,
+            onDismiss = onDismissCafeSourcePicker
+        )
+    }
+}
+
+@Composable
+private fun ImportWodButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    Button(
+        modifier = modifier,
+        onClick = onClick,
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.tertiary,
+            contentColor = MaterialTheme.colorScheme.onTertiary
+        )
+    ) {
+        Text(text = "WOD 불러오기")
+    }
+}
+
+@Composable
+private fun CafeSourcePickerDialog(
+    cafeSources: List<CafeSource>,
+    onSelect: (CafeSource) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        modifier = Modifier.testTag("dialog-cafe-source-picker"),
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "가져올 카페 선택",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                cafeSources.forEach { cafeSource ->
+                    WodLogPrimaryButton(
+                        text = cafeSource.boxName,
+                        onClick = { onSelect(cafeSource) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("action-select-cafe-source-${cafeSource.id}")
+                    )
+                    Text(
+                        text = cafeSource.boardUrl,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.testTag("action-dismiss-cafe-source-picker")
+            ) {
+                Text("취소")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    )
 }

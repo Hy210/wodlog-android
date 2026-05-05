@@ -33,6 +33,12 @@ sealed class WodlogRoute(
 
         fun createRoute(wodId: Long): String = "report-edit/$wodId"
     }
+    data object CafeImport : WodlogRoute("cafe-import/{cafeSourceId}", "WOD 불러오기") {
+        const val cafeSourceIdArgument = "cafeSourceId"
+        const val placeholderRoute = "cafe-import"
+
+        fun createRoute(cafeSourceId: Long): String = "cafe-import/$cafeSourceId"
+    }
     data object Profile : WodlogRoute("profile", "프로필")
     data object Lifestyle : WodlogRoute("lifestyle", "생활습관")
     data object CafeSourceSettings : WodlogRoute("cafe-source-settings", "카페 소스 설정")
@@ -49,6 +55,7 @@ sealed class WodlogRoute(
                 ResultEdit,
                 Prompt,
                 ReportEdit,
+                CafeImport,
                 Profile,
                 Lifestyle,
                 CafeSourceSettings,

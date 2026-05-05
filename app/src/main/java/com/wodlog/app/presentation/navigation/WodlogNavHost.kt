@@ -1,6 +1,8 @@
 package com.wodlog.app.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -15,10 +17,11 @@ import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarRoute
 import com.wodlog.app.presentation.calendar.CalendarViewModel
 import com.wodlog.app.presentation.calendar.CalendarViewModelFactory
+import com.wodlog.app.presentation.cafeimport.CafeImportPlaceholderScreen
 import com.wodlog.app.presentation.compare.CompareRoute
 import com.wodlog.app.presentation.compare.CompareViewModel
 import com.wodlog.app.presentation.compare.CompareViewModelFactory
-import com.wodlog.app.presentation.home.HomeScreen
+import com.wodlog.app.presentation.home.HomeRoute
 import com.wodlog.app.presentation.lifestyle.LifestyleRoute
 import com.wodlog.app.presentation.lifestyle.LifestyleViewModel
 import com.wodlog.app.presentation.lifestyle.LifestyleViewModelFactory
@@ -64,9 +67,13 @@ fun WodlogNavHost(
         modifier = modifier
     ) {
         composable(WodlogRoute.Home.route) {
-            HomeScreen(
+            HomeRoute(
+                repository = repository,
                 onCreateWodClick = {
                     navController.navigate(WodlogRoute.WodEdit.route)
+                },
+                onOpenCafeImport = { cafeSourceId ->
+                    navController.navigate(WodlogRoute.CafeImport.createRoute(cafeSourceId))
                 }
             )
         }
@@ -304,6 +311,35 @@ fun WodlogNavHost(
                     wodId = wodId
                 )
             }
+        }
+        composable(WodlogRoute.CafeImport.placeholderRoute) {
+            CafeImportPlaceholderScreen(
+                cafeSource = null,
+                cafeSourceId = 0L,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable(
+            route = WodlogRoute.CafeImport.route,
+            arguments = listOf(
+                navArgument(WodlogRoute.CafeImport.cafeSourceIdArgument) {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val cafeSourceId = backStackEntry.arguments
+                ?.getLong(WodlogRoute.CafeImport.cafeSourceIdArgument)
+                ?: 0L
+            val cafeSources by repository.observeCafeSources().collectAsState(initial = emptyList())
+            CafeImportPlaceholderScreen(
+                cafeSource = cafeSources.firstOrNull { it.id == cafeSourceId },
+                cafeSourceId = cafeSourceId,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
         composable(WodlogRoute.Profile.route) {
             val profileViewModel: ProfileViewModel = viewModel(
