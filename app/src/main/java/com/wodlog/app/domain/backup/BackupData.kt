@@ -5,6 +5,7 @@ import com.wodlog.app.domain.model.MovementCategory
 import com.wodlog.app.domain.model.RxStatus
 import com.wodlog.app.domain.model.ScoreType
 import com.wodlog.app.domain.model.WodType
+import com.wodlog.app.domain.model.WodSourceType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -42,6 +43,9 @@ data class BackupWod(
     val type: WodType,
     val rawText: String? = null,
     val notes: String? = null,
+    val sourceType: WodSourceType = WodSourceType.MANUAL,
+    val sourceUrl: String? = null,
+    val importedAt: String? = null,
     val createdAt: String,
     val updatedAt: String,
 )

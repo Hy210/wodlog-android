@@ -129,6 +129,22 @@ fun WodlogNavHost(
                 }
             )
         }
+        composable(WodlogRoute.WodEditFromImport.route) {
+            val importedWodText = ImportedWodPreviewHolder.consumeEditorPrefill()
+            val wodEditViewModel: WodEditViewModel = viewModel(
+                factory = WodEditViewModelFactory(
+                    repository = repository,
+                    importedWodText = importedWodText
+                )
+            )
+            WodEditRoute(
+                viewModel = wodEditViewModel,
+                onSaved = { wodId ->
+                    ImportedWodPreviewHolder.current = null
+                    navController.navigate(WodlogRoute.WodDetail.createRoute(wodId))
+                }
+            )
+        }
         composable(WodlogRoute.WodDetail.placeholderRoute) {
             WodDetailScreen(
                 state = WodDetailUiState(errorMessage = "Open a saved WOD to view details."),
@@ -356,6 +372,11 @@ fun WodlogNavHost(
                 importedWodText = ImportedWodPreviewHolder.current,
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onApplyToWodEdit = { importedWodText ->
+                    ImportedWodPreviewHolder.editorPrefill = importedWodText
+                    navController.navigate(WodlogRoute.WodEditFromImport.route)
+                    true
                 }
             )
         }

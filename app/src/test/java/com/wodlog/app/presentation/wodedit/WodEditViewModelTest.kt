@@ -2,12 +2,14 @@ package com.wodlog.app.presentation.wodedit
 
 import com.wodlog.app.domain.model.AiReport
 import com.wodlog.app.domain.model.LifestyleLog
+import com.wodlog.app.domain.model.ImportedWodText
 import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.MovementCategory
 import com.wodlog.app.domain.model.UserProfile
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
 import com.wodlog.app.domain.model.WodSection
+import com.wodlog.app.domain.model.WodSourceType
 import com.wodlog.app.domain.model.WodType
 import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.util.ValidationError
@@ -58,6 +60,57 @@ class WodEditViewModelTest {
     @Test
     fun initialState_usesTodayAsDefaultDate() {
         assertEquals("2026-05-03", viewModel.uiState.value.dateInput)
+        assertEquals(WodSourceType.MANUAL, viewModel.uiState.value.sourceType)
+        assertNull(viewModel.uiState.value.sourceUrl)
+    }
+
+    @Test
+    fun initialState_withImportedWod_prefillsEditableInputsWithoutSaving() {
+        val importedAt = Instant.parse("2026-05-02T12:00:00Z")
+        val importedViewModel = WodEditViewModel(
+            repository = repository,
+            importedWodText = ImportedWodText(
+                sourceUrl = "https://cafe.naver.com/box/123",
+                title = "Today WOD",
+                importedText = "21-15-9\nThruster\nPull-up",
+                importedAt = importedAt
+            ),
+            todayProvider = { today },
+            nowProvider = { now },
+            localIdProvider = { localIds.removeFirst() }
+        )
+
+        val state = importedViewModel.uiState.value
+        assertEquals("2026-05-03", state.dateInput)
+        assertEquals("Today WOD", state.titleInput)
+        assertEquals("21-15-9\nThruster\nPull-up", state.rawTextInput)
+        assertEquals(WodType.OTHER, state.wodType)
+        assertEquals(WodSourceType.NAVER_CAFE_WEBVIEW, state.sourceType)
+        assertEquals("https://cafe.naver.com/box/123", state.sourceUrl)
+        assertEquals(importedAt, state.importedAt)
+        assertTrue(repository.savedWods.isEmpty())
+    }
+
+    @Test
+    fun importedPrefill_doesNotOverwriteUserEdits() {
+        val importedViewModel = WodEditViewModel(
+            repository = repository,
+            importedWodText = ImportedWodText(
+                sourceUrl = "https://cafe.naver.com/box/123",
+                title = "Today WOD",
+                importedText = "Imported text",
+                importedAt = Instant.parse("2026-05-02T12:00:00Z")
+            ),
+            todayProvider = { today },
+            nowProvider = { now },
+            localIdProvider = { localIds.removeFirst() }
+        )
+
+        importedViewModel.onTitleChange("Edited title")
+        importedViewModel.onRawTextChange("Edited raw text")
+
+        assertEquals("Edited title", importedViewModel.uiState.value.titleInput)
+        assertEquals("Edited raw text", importedViewModel.uiState.value.rawTextInput)
     }
 
     @Test
@@ -185,6 +238,8 @@ class WodEditViewModelTest {
         assertEquals(LocalDate.of(2026, 5, 1), savedWod.date)
         assertEquals("Fran", savedWod.title)
         assertEquals(WodType.FOR_TIME, savedWod.type)
+        assertEquals(WodSourceType.MANUAL, savedWod.sourceType)
+        assertNull(savedWod.sourceUrl)
 
         val savedSection = repository.savedSections.single()
         assertEquals(1L, savedSection.wodId)
@@ -198,6 +253,35 @@ class WodEditViewModelTest {
         assertEquals(21, savedMovement.reps)
         assertEquals(MovementCategory.WEIGHTLIFTING, savedMovement.category)
         assertEquals("scaled weight", savedMovement.notes)
+    }
+
+    @Test
+    fun saveWod_withImportedPrefill_savesSourceMetadataOnlyAfterSaveClick() = runTest {
+        val importedAt = Instant.parse("2026-05-02T12:00:00Z")
+        val importedViewModel = WodEditViewModel(
+            repository = repository,
+            importedWodText = ImportedWodText(
+                sourceUrl = "https://cafe.naver.com/box/123",
+                title = "Today WOD",
+                importedText = "21-15-9\nThruster\nPull-up",
+                importedAt = importedAt
+            ),
+            todayProvider = { today },
+            nowProvider = { now },
+            localIdProvider = { localIds.removeFirst() }
+        )
+
+        assertTrue(repository.savedWods.isEmpty())
+
+        importedViewModel.saveWod()
+        advanceUntilIdle()
+
+        val savedWod = repository.savedWods.single()
+        assertEquals("Today WOD", savedWod.title)
+        assertEquals("21-15-9\nThruster\nPull-up", savedWod.rawText)
+        assertEquals(WodSourceType.NAVER_CAFE_WEBVIEW, savedWod.sourceType)
+        assertEquals("https://cafe.naver.com/box/123", savedWod.sourceUrl)
+        assertEquals(importedAt, savedWod.importedAt)
     }
 }
 

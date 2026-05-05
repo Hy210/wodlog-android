@@ -10,6 +10,7 @@ import com.wodlog.app.data.entity.ScoreType
 import com.wodlog.app.data.entity.UserProfileEntity
 import com.wodlog.app.data.entity.WodEntity
 import com.wodlog.app.data.entity.WodResultEntity
+import com.wodlog.app.data.entity.WodSourceType
 import com.wodlog.app.data.entity.WodType
 import java.time.Instant
 import java.time.LocalDate
@@ -29,6 +30,9 @@ class EntityMappersTest {
             type = WodType.FOR_TIME,
             rawText = "21-15-9",
             notes = "fast",
+            sourceType = WodSourceType.NAVER_CAFE_WEBVIEW,
+            sourceUrl = "https://cafe.naver.com/box/123",
+            importedAt = now.minusSeconds(60),
             createdAt = now,
             updatedAt = now
         )
@@ -41,6 +45,9 @@ class EntityMappersTest {
         assertEquals(com.wodlog.app.domain.model.WodType.FOR_TIME, domain.type)
         assertEquals("21-15-9", domain.rawText)
         assertEquals("fast", domain.notes)
+        assertEquals(com.wodlog.app.domain.model.WodSourceType.NAVER_CAFE_WEBVIEW, domain.sourceType)
+        assertEquals("https://cafe.naver.com/box/123", domain.sourceUrl)
+        assertEquals(now.minusSeconds(60), domain.importedAt)
     }
 
     @Test
@@ -52,6 +59,9 @@ class EntityMappersTest {
             type = com.wodlog.app.domain.model.WodType.OTHER,
             rawText = null,
             notes = null,
+            sourceType = com.wodlog.app.domain.model.WodSourceType.NAVER_CAFE_WEBVIEW,
+            sourceUrl = "https://cafe.naver.com/box/456",
+            importedAt = now.minusSeconds(30),
             createdAt = now,
             updatedAt = now
         )
@@ -64,6 +74,9 @@ class EntityMappersTest {
         assertEquals(WodType.OTHER, entity.type)
         assertNull(entity.rawText)
         assertNull(entity.notes)
+        assertEquals(WodSourceType.NAVER_CAFE_WEBVIEW, entity.sourceType)
+        assertEquals("https://cafe.naver.com/box/456", entity.sourceUrl)
+        assertEquals(now.minusSeconds(30), entity.importedAt)
     }
 
     @Test

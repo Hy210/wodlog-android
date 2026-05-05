@@ -9,6 +9,7 @@ sealed class WodlogRoute(
     data object Compare : WodlogRoute("compare", "비교")
     data object Settings : WodlogRoute("settings", "설정")
     data object WodEdit : WodlogRoute("wod-edit", "WOD 작성")
+    data object WodEditFromImport : WodlogRoute("wod-edit/imported", "WOD 작성")
     data object WodDetail : WodlogRoute("wod-detail/{wodId}", "WOD 상세") {
         const val wodIdArgument = "wodId"
         const val placeholderRoute = "wod-detail"
@@ -52,6 +53,7 @@ sealed class WodlogRoute(
         val secondaryRoutes: List<WodlogRoute>
             get() = listOf(
                 WodEdit,
+                WodEditFromImport,
                 WodDetail,
                 ResultEdit,
                 Prompt,

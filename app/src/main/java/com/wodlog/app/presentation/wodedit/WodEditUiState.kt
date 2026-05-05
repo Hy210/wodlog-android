@@ -1,7 +1,9 @@
 package com.wodlog.app.presentation.wodedit
 
 import com.wodlog.app.domain.model.MovementCategory
+import com.wodlog.app.domain.model.WodSourceType
 import com.wodlog.app.domain.model.WodType
+import java.time.Instant
 import com.wodlog.app.util.ValidationError
 
 data class WodEditUiState(
@@ -10,6 +12,9 @@ data class WodEditUiState(
     val wodType: WodType? = null,
     val rawTextInput: String = "",
     val memoInput: String = "",
+    val sourceType: WodSourceType = WodSourceType.MANUAL,
+    val sourceUrl: String? = null,
+    val importedAt: Instant? = null,
     val sections: List<WodSectionInputState> = emptyList(),
     val movements: List<MovementInputState> = emptyList(),
     val isSaving: Boolean = false,

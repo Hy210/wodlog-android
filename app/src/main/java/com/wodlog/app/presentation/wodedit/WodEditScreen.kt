@@ -20,8 +20,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wodlog.app.domain.model.MovementCategory
+import com.wodlog.app.domain.model.WodSourceType
 import com.wodlog.app.domain.model.WodType
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogDangerButton
@@ -117,6 +119,7 @@ fun WodEditScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        ImportedSourceNotice(state = state)
 
         WodLogCard(
             title = "기본 정보",
@@ -273,6 +276,31 @@ fun WodEditScreen(
                 .fillMaxWidth()
                 .testTag("action-save-wod")
         )
+    }
+}
+
+@Composable
+private fun ImportedSourceNotice(state: WodEditUiState) {
+    if (state.sourceType == WodSourceType.MANUAL) return
+
+    WodLogCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("wod-edit-imported-source-notice"),
+        title = "네이버카페에서 가져온 내용입니다.",
+        subtitle = "입력 화면에서 내용을 확인하고 수정한 뒤 저장해 주세요.",
+        outlined = false
+    ) {
+        state.sourceUrl?.let { sourceUrl ->
+            Text(
+                text = sourceUrl,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("text-wod-edit-source-url")
+            )
+        }
     }
 }
 

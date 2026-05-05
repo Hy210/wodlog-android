@@ -59,6 +59,9 @@ fun Wod.toBackup(): BackupWod =
         type = type,
         rawText = rawText,
         notes = notes,
+        sourceType = sourceType,
+        sourceUrl = sourceUrl,
+        importedAt = importedAt?.toString(),
         createdAt = createdAt.toString(),
         updatedAt = updatedAt.toString(),
     )
@@ -71,6 +74,9 @@ fun BackupWod.toDomain(): Wod =
         type = type,
         rawText = rawText,
         notes = notes,
+        sourceType = sourceType,
+        sourceUrl = sourceUrl,
+        importedAt = importedAt?.let(Instant::parse),
         createdAt = Instant.parse(createdAt),
         updatedAt = Instant.parse(updatedAt),
     )

@@ -21,11 +21,13 @@ import com.wodlog.app.data.entity.MovementCategory as DataMovementCategory
 import com.wodlog.app.data.entity.RxStatus as DataRxStatus
 import com.wodlog.app.data.entity.ScoreType as DataScoreType
 import com.wodlog.app.data.entity.WodType as DataWodType
+import com.wodlog.app.data.entity.WodSourceType as DataWodSourceType
 import com.wodlog.app.domain.model.Condition as DomainCondition
 import com.wodlog.app.domain.model.MovementCategory as DomainMovementCategory
 import com.wodlog.app.domain.model.RxStatus as DomainRxStatus
 import com.wodlog.app.domain.model.ScoreType as DomainScoreType
 import com.wodlog.app.domain.model.WodType as DomainWodType
+import com.wodlog.app.domain.model.WodSourceType as DomainWodSourceType
 
 fun UserProfileEntity.toDomain(): UserProfile = UserProfile(
     id = id,
@@ -52,6 +54,9 @@ fun WodEntity.toDomain(): Wod = Wod(
     type = type.toDomain(),
     rawText = rawText,
     notes = notes,
+    sourceType = sourceType.toDomain(),
+    sourceUrl = sourceUrl,
+    importedAt = importedAt,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -63,6 +68,9 @@ fun Wod.toEntity(): WodEntity = WodEntity(
     type = type.toEntity(),
     rawText = rawText,
     notes = notes,
+    sourceType = sourceType.toEntity(),
+    sourceUrl = sourceUrl,
+    importedAt = importedAt,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -224,6 +232,10 @@ fun CafeSource.toEntity(): CafeSourceEntity = CafeSourceEntity(
 private fun DataWodType.toDomain(): DomainWodType = DomainWodType.valueOf(name)
 
 private fun DomainWodType.toEntity(): DataWodType = DataWodType.valueOf(name)
+
+private fun DataWodSourceType.toDomain(): DomainWodSourceType = DomainWodSourceType.valueOf(name)
+
+private fun DomainWodSourceType.toEntity(): DataWodSourceType = DataWodSourceType.valueOf(name)
 
 private fun DataMovementCategory.toDomain(): DomainMovementCategory = DomainMovementCategory.valueOf(name)
 

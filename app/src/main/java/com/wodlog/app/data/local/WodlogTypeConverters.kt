@@ -5,6 +5,7 @@ import com.wodlog.app.data.entity.Condition
 import com.wodlog.app.data.entity.MovementCategory
 import com.wodlog.app.data.entity.RxStatus
 import com.wodlog.app.data.entity.ScoreType
+import com.wodlog.app.data.entity.WodSourceType
 import com.wodlog.app.data.entity.WodType
 import java.time.Instant
 import java.time.LocalDate
@@ -28,6 +29,12 @@ class WodlogTypeConverters {
 
     @TypeConverter
     fun stringToWodType(value: String?): WodType? = value?.let(WodType::valueOf)
+
+    @TypeConverter
+    fun wodSourceTypeToString(value: WodSourceType?): String? = value?.name
+
+    @TypeConverter
+    fun stringToWodSourceType(value: String?): WodSourceType? = value?.let(WodSourceType::valueOf)
 
     @TypeConverter
     fun movementCategoryToString(value: MovementCategory?): String? = value?.name

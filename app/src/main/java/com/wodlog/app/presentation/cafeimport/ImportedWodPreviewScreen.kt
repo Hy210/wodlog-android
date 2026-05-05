@@ -10,6 +10,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
@@ -25,9 +29,11 @@ import com.wodlog.app.presentation.components.WodLogSecondaryButton
 fun ImportedWodPreviewScreen(
     importedWodText: ImportedWodText?,
     onBackClick: () -> Unit,
+    onApplyToWodEdit: (ImportedWodText) -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     val clipboardManager = LocalClipboardManager.current
+    var applyErrorMessage by remember { mutableStateOf<String?>(null) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -56,6 +62,15 @@ fun ImportedWodPreviewScreen(
                     .testTag("action-back-imported-wod-preview")
             )
             return@Column
+        }
+
+        applyErrorMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.testTag("text-imported-wod-apply-error")
+            )
         }
 
         WodLogCard(
@@ -94,6 +109,24 @@ fun ImportedWodPreviewScreen(
         }
 
         WodLogPrimaryButton(
+            text = "WOD 입력에 적용",
+            onClick = {
+                val applied = onApplyToWodEdit(importedWodText)
+                if (!applied) {
+                    applyErrorMessage = "가져온 내용을 입력 화면에 전달하지 못했습니다. 다시 시도해 주세요."
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("action-apply-imported-wod-to-edit")
+        )
+        Text(
+            text = "입력 화면에서 내용을 확인하고 수정한 뒤 저장해 주세요.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag("text-imported-wod-apply-guide")
+        )
+        WodLogPrimaryButton(
             text = "복사",
             onClick = {
                 clipboardManager.setText(AnnotatedString(importedWodText.importedText))
@@ -110,7 +143,7 @@ fun ImportedWodPreviewScreen(
                 .testTag("action-back-imported-wod-preview")
         )
         Text(
-            text = "WOD 입력에 적용은 다음 단계에서 연결됩니다.",
+            text = "저장은 WOD 입력 화면의 저장 버튼을 누를 때만 진행됩니다.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag("text-imported-wod-next-phase")

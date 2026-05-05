@@ -11,6 +11,7 @@ import com.wodlog.app.domain.model.UserProfile
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
 import com.wodlog.app.domain.model.WodSection
+import com.wodlog.app.domain.model.WodSourceType
 import com.wodlog.app.domain.model.WodType
 import java.time.Instant
 import java.time.LocalDate
@@ -38,6 +39,9 @@ class BackupMappersTest {
             type = WodType.FOR_TIME,
             rawText = "21-15-9",
             notes = "steady",
+            sourceType = WodSourceType.NAVER_CAFE_WEBVIEW,
+            sourceUrl = "https://cafe.naver.com/box/123",
+            importedAt = instant.minusSeconds(60),
             createdAt = instant,
             updatedAt = instant,
         )

@@ -35,7 +35,7 @@ import com.wodlog.app.data.entity.WodSectionEntity
         AiReportEntity::class,
         CafeSourceEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(WodlogTypeConverters::class)
@@ -80,13 +80,21 @@ abstract class WodlogDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `wods` ADD COLUMN `sourceType` TEXT NOT NULL DEFAULT 'MANUAL'")
+                db.execSQL("ALTER TABLE `wods` ADD COLUMN `sourceUrl` TEXT")
+                db.execSQL("ALTER TABLE `wods` ADD COLUMN `importedAt` INTEGER")
+            }
+        }
+
         fun getInstance(context: Context): WodlogDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     WodlogDatabase::class.java,
                     "wodlog.db"
-                ).addMigrations(MIGRATION_1_2)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }

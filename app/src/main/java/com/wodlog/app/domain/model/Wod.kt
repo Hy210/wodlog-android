@@ -10,6 +10,9 @@ data class Wod(
     val type: WodType,
     val rawText: String? = null,
     val notes: String? = null,
+    val sourceType: WodSourceType = WodSourceType.MANUAL,
+    val sourceUrl: String? = null,
+    val importedAt: Instant? = null,
     val createdAt: Instant,
     val updatedAt: Instant
 )

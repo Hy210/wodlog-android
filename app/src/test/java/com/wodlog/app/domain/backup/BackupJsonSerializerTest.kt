@@ -11,6 +11,7 @@ import com.wodlog.app.domain.model.UserProfile
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
 import com.wodlog.app.domain.model.WodSection
+import com.wodlog.app.domain.model.WodSourceType
 import com.wodlog.app.domain.model.WodType
 import java.time.Instant
 import java.time.LocalDate
@@ -46,6 +47,9 @@ class BackupJsonSerializerTest {
         assertEquals("2026-05-04T10:15:30Z", decoded.exportedAt)
         assertEquals(180.0, decoded.profile?.heightCm ?: error("heightCm missing"), 0.0)
         assertEquals(10L, decoded.wods.first().id)
+        assertEquals(WodSourceType.NAVER_CAFE_WEBVIEW, decoded.wods.first().sourceType)
+        assertEquals("https://cafe.naver.com/box/123", decoded.wods.first().sourceUrl)
+        assertEquals("2026-05-04T10:15:30Z", decoded.wods.first().importedAt)
         assertEquals(10L, decoded.sections.first().wodId)
         assertEquals(10L, decoded.movements.first().wodId)
         assertEquals(20L, decoded.movements.first().sectionId)
@@ -109,6 +113,9 @@ class BackupJsonSerializerTest {
             type = WodType.FOR_TIME,
             rawText = "21-15-9",
             notes = "steady",
+            sourceType = WodSourceType.NAVER_CAFE_WEBVIEW,
+            sourceUrl = "https://cafe.naver.com/box/123",
+            importedAt = instant,
             createdAt = instant,
             updatedAt = instant,
         )

@@ -11,6 +11,13 @@ enum class WodType {
     OTHER
 }
 
+enum class WodSourceType {
+    MANUAL,
+    NAVER_CAFE_WEBVIEW,
+    PASTE_TEXT,
+    OCR
+}
+
 enum class MovementCategory {
     STRENGTH,
     CARDIO,

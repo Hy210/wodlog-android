@@ -32,6 +32,7 @@ class ImportedWodPreviewScreenTest {
         composeRule.onNodeWithTag("screen-imported-wod-preview").assertIsDisplayed()
         composeRule.onNodeWithTag("text-imported-wod-source-url").assertIsDisplayed()
         composeRule.onNodeWithTag("text-imported-wod-body").assertIsDisplayed()
+        composeRule.onNodeWithTag("action-apply-imported-wod-to-edit").assertIsDisplayed()
         composeRule.onNodeWithTag("action-copy-imported-wod").assertIsDisplayed()
     }
 

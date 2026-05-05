@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.MovementCategory
+import com.wodlog.app.domain.model.ImportedWodText
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.model.WodType
@@ -22,12 +23,15 @@ import kotlinx.coroutines.launch
 
 class WodEditViewModel(
     private val repository: WodlogRepository,
+    importedWodText: ImportedWodText? = null,
     todayProvider: () -> LocalDate = { LocalDate.now() },
     private val nowProvider: () -> Instant = { Instant.now() },
     private val localIdProvider: () -> String = { UUID.randomUUID().toString() }
 ) : ViewModel() {
+    private val today = todayProvider()
     private val _uiState = MutableStateFlow(
-        WodEditUiState(dateInput = WodlogDateUtils.formatDate(todayProvider()))
+        importedWodText?.toPrefilledState(today)
+            ?: WodEditUiState(dateInput = WodlogDateUtils.formatDate(today))
     )
     val uiState: StateFlow<WodEditUiState> = _uiState.asStateFlow()
 
@@ -168,6 +172,9 @@ class WodEditViewModel(
                     type = requireNotNull(currentState.wodType),
                     rawText = currentState.rawTextInput.trimToNull(),
                     notes = currentState.memoInput.trimToNull(),
+                    sourceType = currentState.sourceType,
+                    sourceUrl = currentState.sourceUrl?.trimToNull(),
+                    importedAt = currentState.importedAt,
                     createdAt = now,
                     updatedAt = now
                 )
@@ -340,6 +347,18 @@ class WodEditViewModel(
 
     private fun String.trimToNull(): String? {
         return trim().takeIf { it.isNotEmpty() }
+    }
+
+    private fun ImportedWodText.toPrefilledState(today: LocalDate): WodEditUiState {
+        return WodEditUiState(
+            dateInput = WodlogDateUtils.formatDate(today),
+            titleInput = title.trim(),
+            wodType = WodType.OTHER,
+            rawTextInput = importedText,
+            sourceType = sourceType,
+            sourceUrl = sourceUrl,
+            importedAt = importedAt
+        )
     }
 }
 
