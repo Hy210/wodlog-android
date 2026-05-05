@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.wodlog.app.domain.model.CafeSource
+import com.wodlog.app.domain.model.CafePostCandidate
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSecondaryButton
@@ -53,6 +56,7 @@ fun CafeImportScreen(
     }
 
     var webView by remember { mutableStateOf<WebView?>(null) }
+    val candidateExtractor = remember { CafePostCandidateExtractor() }
     var state by remember(cafeSource.id) {
         mutableStateOf(
             CafeImportUiState(
@@ -88,10 +92,45 @@ fun CafeImportScreen(
         )
         CafeImportActions(
             isLoading = state.isLoading,
+            isExtractingCandidates = state.isExtractingCandidates,
             onBackClick = handleBack,
             onReloadClick = {
                 state = state.copy(errorMessage = null)
                 webView?.reload()
+            },
+            onFindCandidatesClick = {
+                val currentWebView = webView
+                if (currentWebView == null) {
+                    state = state.copy(
+                        candidateMessage = "현재 화면을 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.",
+                        isCandidateListVisible = true
+                    )
+                    return@CafeImportActions
+                }
+
+                val currentPageUrl = state.currentUrl.ifBlank { state.initialUrl }
+                state = state.copy(
+                    isExtractingCandidates = true,
+                    candidateMessage = null,
+                    errorMessage = null
+                )
+                currentWebView.evaluateJavascript(CafePostCandidateExtractionScript) { result ->
+                    val candidates = candidateExtractor.extract(
+                        evaluateJavascriptResult = result.orEmpty(),
+                        currentPageUrl = currentPageUrl,
+                        titleKeywords = cafeSource.titleKeywords
+                    )
+                    state = state.copy(
+                        isExtractingCandidates = false,
+                        candidates = candidates,
+                        isCandidateListVisible = true,
+                        candidateMessage = if (candidates.isEmpty()) {
+                            "현재 화면에서 WOD 후보를 찾지 못했습니다."
+                        } else {
+                            null
+                        }
+                    )
+                }
             }
         )
         state.errorMessage?.let { errorMessage ->
@@ -135,6 +174,20 @@ fun CafeImportScreen(
                 }
             }
         }
+    }
+
+    if (state.isCandidateListVisible) {
+        CafePostCandidateDialog(
+            candidates = state.candidates,
+            message = state.candidateMessage,
+            onSelect = { candidate ->
+                state = state.copy(isCandidateListVisible = false)
+                webView?.loadUrl(candidate.url)
+            },
+            onDismiss = {
+                state = state.copy(isCandidateListVisible = false)
+            }
+        )
     }
 
     DisposableEffect(Unit) {
@@ -185,29 +238,120 @@ private fun CafeImportHeader(
 @Composable
 private fun CafeImportActions(
     isLoading: Boolean,
+    isExtractingCandidates: Boolean,
     onBackClick: () -> Unit,
-    onReloadClick: () -> Unit
+    onReloadClick: () -> Unit,
+    onFindCandidatesClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        WodLogSecondaryButton(
-            text = "뒤로",
-            onClick = onBackClick,
-            modifier = Modifier
-                .weight(1f)
-                .testTag("action-webview-back")
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            WodLogSecondaryButton(
+                text = "뒤로",
+                onClick = onBackClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("action-webview-back")
+            )
+            WodLogPrimaryButton(
+                text = "새로고침",
+                onClick = onReloadClick,
+                enabled = !isLoading && !isExtractingCandidates,
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("action-webview-reload")
+            )
+        }
         WodLogPrimaryButton(
-            text = "새로고침",
-            onClick = onReloadClick,
-            enabled = !isLoading,
+            text = "현재 목록에서 WOD 찾기",
+            onClick = onFindCandidatesClick,
+            enabled = !isLoading && !isExtractingCandidates,
+            loading = isExtractingCandidates,
             modifier = Modifier
-                .weight(1f)
-                .testTag("action-webview-reload")
+                .fillMaxWidth()
+                .testTag("action-find-wod-candidates")
         )
     }
+}
+
+@Composable
+private fun CafePostCandidateDialog(
+    candidates: List<CafePostCandidate>,
+    message: String?,
+    onSelect: (CafePostCandidate) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        modifier = Modifier.testTag("dialog-cafe-post-candidates"),
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "WOD 후보",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (candidates.isEmpty()) {
+                    Text(
+                        text = message ?: "현재 화면에서 WOD 후보를 찾지 못했습니다.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.testTag("text-cafe-post-candidate-empty")
+                    )
+                    Text(
+                        text = "찾지 못했다면 WOD 추가에서 직접 입력할 수 있습니다.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag("text-cafe-post-candidate-fallback")
+                    )
+                } else {
+                    candidates.forEach { candidate ->
+                        WodLogCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("cafe-post-candidate-${candidate.url.hashCode()}"),
+                            title = candidate.title,
+                            subtitle = candidate.dateText
+                        ) {
+                            Text(
+                                text = candidate.url,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            candidate.matchedKeyword?.let { keyword ->
+                                Text(
+                                    text = "매칭 키워드: $keyword",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            WodLogPrimaryButton(
+                                text = "이 글 열기",
+                                onClick = { onSelect(candidate) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("action-open-cafe-post-${candidate.url.hashCode()}")
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.testTag("action-dismiss-cafe-post-candidates")
+            ) {
+                Text("닫기")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    )
 }
 
 @Composable
