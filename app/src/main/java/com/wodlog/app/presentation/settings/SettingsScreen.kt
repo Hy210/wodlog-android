@@ -26,6 +26,7 @@ import com.wodlog.app.presentation.components.WodLogStatusChipTone
 fun SettingsScreen(
     onProfileClick: () -> Unit = {},
     onLifestyleClick: () -> Unit = {},
+    onCafeSourceClick: () -> Unit = {},
     onLicenseClick: () -> Unit = {},
     onExportJsonClick: () -> Unit = {},
     onImportJsonClick: () -> Unit = {},
@@ -70,6 +71,20 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("action-open-lifestyle")
+            )
+        }
+
+        SettingsSection(
+            title = "네이버카페 WOD 가져오기",
+            subtitle = "WOD 게시판 URL을 등록해 가져오기 준비를 합니다.",
+            modifier = Modifier.testTag("settings-section-cafe-source")
+        ) {
+            WodLogSecondaryButton(
+                text = "카페 소스 설정",
+                onClick = onCafeSourceClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("action-open-cafe-source-settings")
             )
         }
 

@@ -30,6 +30,7 @@ class SettingsScreenTest {
 
         composeRule.onNodeWithTag("screen-settings").assertIsDisplayed()
         composeRule.onNodeWithTag("settings-section-profile").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-section-cafe-source").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-section-app-info").assertIsDisplayed()
         composeRule.onNodeWithTag("settings-section-data").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-section-license").performScrollTo().assertIsDisplayed()
@@ -79,6 +80,24 @@ class SettingsScreenTest {
         }
 
         composeRule.onNodeWithTag("action-import-json").performScrollTo().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, clickCount)
+        }
+    }
+
+    @Test
+    fun cafeSourceSettingsButton_callsCallback() {
+        var clickCount = 0
+        composeRule.setContent {
+            WodlogTheme {
+                SettingsScreen(onCafeSourceClick = { clickCount += 1 })
+            }
+        }
+
+        composeRule.onNodeWithTag("action-open-cafe-source-settings")
+            .performScrollTo()
+            .performClick()
 
         composeRule.runOnIdle {
             assertEquals(1, clickCount)

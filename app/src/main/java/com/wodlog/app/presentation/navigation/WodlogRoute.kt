@@ -35,6 +35,7 @@ sealed class WodlogRoute(
     }
     data object Profile : WodlogRoute("profile", "프로필")
     data object Lifestyle : WodlogRoute("lifestyle", "생활습관")
+    data object CafeSourceSettings : WodlogRoute("cafe-source-settings", "카페 소스 설정")
     data object License : WodlogRoute("license", "라이선스")
 
     companion object {
@@ -50,6 +51,7 @@ sealed class WodlogRoute(
                 ReportEdit,
                 Profile,
                 Lifestyle,
+                CafeSourceSettings,
                 License
             )
         val allRoutes: List<WodlogRoute>

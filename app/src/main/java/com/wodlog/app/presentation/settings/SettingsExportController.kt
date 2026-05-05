@@ -42,6 +42,7 @@ fun SettingsRoute(
     backupImportApplyUseCase: BackupImportApplyUseCase,
     onProfileClick: () -> Unit = {},
     onLifestyleClick: () -> Unit = {},
+    onCafeSourceClick: () -> Unit = {},
     onLicenseClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -109,6 +110,7 @@ fun SettingsRoute(
     SettingsScreen(
         onProfileClick = onProfileClick,
         onLifestyleClick = onLifestyleClick,
+        onCafeSourceClick = onCafeSourceClick,
         onLicenseClick = onLicenseClick,
         onExportJsonClick = {
             scope.launch {
