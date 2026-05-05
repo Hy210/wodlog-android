@@ -1,6 +1,7 @@
 package com.wodlog.app.data.mapper
 
 import com.wodlog.app.data.entity.AiReportEntity
+import com.wodlog.app.data.entity.CafeSourceEntity
 import com.wodlog.app.data.entity.LifestyleLogEntity
 import com.wodlog.app.data.entity.MovementEntity
 import com.wodlog.app.data.entity.UserProfileEntity
@@ -8,6 +9,7 @@ import com.wodlog.app.data.entity.WodEntity
 import com.wodlog.app.data.entity.WodResultEntity
 import com.wodlog.app.data.entity.WodSectionEntity
 import com.wodlog.app.domain.model.AiReport
+import com.wodlog.app.domain.model.CafeSource
 import com.wodlog.app.domain.model.LifestyleLog
 import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.UserProfile
@@ -195,6 +197,26 @@ fun AiReport.toEntity(): AiReportEntity = AiReportEntity(
     promptText = promptText,
     reportText = reportText,
     userMemo = userMemo,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun CafeSourceEntity.toDomain(): CafeSource = CafeSource(
+    id = id,
+    boxName = boxName,
+    boardUrl = boardUrl,
+    titleKeywords = titleKeywords,
+    preferMobileUrl = preferMobileUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun CafeSource.toEntity(): CafeSourceEntity = CafeSourceEntity(
+    id = id,
+    boxName = boxName,
+    boardUrl = boardUrl,
+    titleKeywords = titleKeywords,
+    preferMobileUrl = preferMobileUrl,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

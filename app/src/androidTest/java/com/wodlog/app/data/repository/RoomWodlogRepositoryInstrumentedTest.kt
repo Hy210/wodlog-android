@@ -5,15 +5,18 @@ import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import com.wodlog.app.data.local.WodlogDatabase
 import com.wodlog.app.domain.model.AiReport
+import com.wodlog.app.domain.model.CafeSource
 import com.wodlog.app.domain.model.LifestyleLog
 import com.wodlog.app.domain.model.UserProfile
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodType
 import java.time.Instant
 import java.time.LocalDate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -38,7 +41,8 @@ class RoomWodlogRepositoryInstrumentedTest {
             movementDao = database.movementDao(),
             wodResultDao = database.wodResultDao(),
             lifestyleLogDao = database.lifestyleLogDao(),
-            aiReportDao = database.aiReportDao()
+            aiReportDao = database.aiReportDao(),
+            cafeSourceDao = database.cafeSourceDao()
         )
     }
 
@@ -167,6 +171,83 @@ class RoomWodlogRepositoryInstrumentedTest {
         assertEquals(listOf("report two", "report one"), reports.map { it.reportText })
     }
 
+    @Test
+    fun saveCafeSource_thenGetCafeSource_returnsDomainCafeSource() = runBlocking {
+        val id = repository.saveCafeSource(newCafeSource(boxName = "Maple Box"))
+
+        val cafeSource = repository.getCafeSource(id)
+
+        assertNotNull(cafeSource)
+        assertEquals("Maple Box", cafeSource?.boxName)
+        assertEquals("https://cafe.naver.com/maplebox", cafeSource?.boardUrl)
+        assertEquals(listOf("WOD", "Metcon"), cafeSource?.titleKeywords)
+        assertEquals(true, cafeSource?.preferMobileUrl)
+    }
+
+    @Test
+    fun observeCafeSources_returnsSourcesSortedByBoxName() = runBlocking {
+        repository.saveCafeSource(
+            newCafeSource(
+                boxName = "Zulu Box",
+                boardUrl = "https://cafe.naver.com/zulu"
+            )
+        )
+        repository.saveCafeSource(
+            newCafeSource(
+                boxName = "Alpha Box",
+                boardUrl = "https://cafe.naver.com/alpha"
+            )
+        )
+
+        val cafeSources = repository.observeCafeSources().first()
+
+        assertEquals(listOf("Alpha Box", "Zulu Box"), cafeSources.map { it.boxName })
+        assertEquals(2, repository.observeCafeSourceCount().first())
+    }
+
+    @Test
+    fun saveCafeSource_withExistingId_updatesExistingSource() = runBlocking {
+        val id = repository.saveCafeSource(newCafeSource(boxName = "Before"))
+
+        repository.saveCafeSource(
+            newCafeSource(
+                id = id,
+                boxName = "After",
+                boardUrl = " https://cafe.naver.com/after ",
+                titleKeywords = listOf(" WOD ", "", "Workout")
+            )
+        )
+
+        val cafeSource = repository.getCafeSource(id)
+
+        assertEquals("After", cafeSource?.boxName)
+        assertEquals("https://cafe.naver.com/after", cafeSource?.boardUrl)
+        assertEquals(listOf("WOD", "Workout"), cafeSource?.titleKeywords)
+    }
+
+    @Test
+    fun deleteCafeSource_removesSavedSource() = runBlocking {
+        val id = repository.saveCafeSource(newCafeSource())
+
+        repository.deleteCafeSource(id)
+
+        assertEquals(null, repository.getCafeSource(id))
+        assertTrue(repository.observeCafeSources().first().isEmpty())
+    }
+
+    @Test
+    fun saveCafeSource_withBlankRequiredFields_throws() = runBlocking {
+        val boxNameResult = runCatching {
+            repository.saveCafeSource(newCafeSource(boxName = " "))
+        }
+        val boardUrlResult = runCatching {
+            repository.saveCafeSource(newCafeSource(boardUrl = " "))
+        }
+
+        assertFalse(boxNameResult.isSuccess)
+        assertFalse(boardUrlResult.isSuccess)
+    }
+
     private fun newWod(
         date: LocalDate,
         title: String,
@@ -176,6 +257,24 @@ class RoomWodlogRepositoryInstrumentedTest {
             date = date,
             title = title,
             type = type,
+            createdAt = now,
+            updatedAt = now
+        )
+    }
+
+    private fun newCafeSource(
+        id: Long = 0L,
+        boxName: String = "Maple Box",
+        boardUrl: String = "https://cafe.naver.com/maplebox",
+        titleKeywords: List<String> = listOf("WOD", "Metcon"),
+        preferMobileUrl: Boolean = true
+    ): CafeSource {
+        return CafeSource(
+            id = id,
+            boxName = boxName,
+            boardUrl = boardUrl,
+            titleKeywords = titleKeywords,
+            preferMobileUrl = preferMobileUrl,
             createdAt = now,
             updatedAt = now
         )

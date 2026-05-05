@@ -1,6 +1,7 @@
 package com.wodlog.app.data.repository
 
 import com.wodlog.app.data.dao.AiReportDao
+import com.wodlog.app.data.dao.CafeSourceDao
 import com.wodlog.app.data.dao.LifestyleLogDao
 import com.wodlog.app.data.dao.MovementDao
 import com.wodlog.app.data.dao.UserProfileDao
@@ -10,6 +11,7 @@ import com.wodlog.app.data.dao.WodSectionDao
 import com.wodlog.app.data.mapper.toDomain
 import com.wodlog.app.data.mapper.toEntity
 import com.wodlog.app.domain.model.AiReport
+import com.wodlog.app.domain.model.CafeSource
 import com.wodlog.app.domain.model.LifestyleLog
 import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.UserProfile
@@ -18,6 +20,8 @@ import com.wodlog.app.domain.model.WodResult
 import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.repository.WodlogRepository
 import java.time.LocalDate
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class RoomWodlogRepository(
     private val userProfileDao: UserProfileDao,
@@ -26,7 +30,8 @@ class RoomWodlogRepository(
     private val movementDao: MovementDao,
     private val wodResultDao: WodResultDao,
     private val lifestyleLogDao: LifestyleLogDao,
-    private val aiReportDao: AiReportDao
+    private val aiReportDao: AiReportDao,
+    private val cafeSourceDao: CafeSourceDao
 ) : WodlogRepository {
     override suspend fun getUserProfile(): UserProfile? {
         return userProfileDao.getProfile()?.toDomain()
@@ -177,5 +182,48 @@ class RoomWodlogRepository(
 
     override suspend fun deleteAiReport(id: Long) {
         aiReportDao.deleteById(id)
+    }
+
+    override fun observeCafeSources(): Flow<List<CafeSource>> {
+        return cafeSourceDao.observeAll().map { cafeSources ->
+            cafeSources.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getCafeSource(id: Long): CafeSource? {
+        return cafeSourceDao.getById(id)?.toDomain()
+    }
+
+    override suspend fun saveCafeSource(cafeSource: CafeSource): Long {
+        val normalizedCafeSource = cafeSource.normalizedForSave()
+        if (normalizedCafeSource.id == 0L) {
+            return cafeSourceDao.insert(normalizedCafeSource.toEntity())
+        }
+
+        val updatedRows = cafeSourceDao.update(normalizedCafeSource.toEntity())
+        if (updatedRows == 0) {
+            cafeSourceDao.insert(normalizedCafeSource.toEntity())
+        }
+        return normalizedCafeSource.id
+    }
+
+    override suspend fun deleteCafeSource(id: Long) {
+        cafeSourceDao.deleteById(id)
+    }
+
+    override fun observeCafeSourceCount(): Flow<Int> {
+        return cafeSourceDao.observeCount()
+    }
+
+    private fun CafeSource.normalizedForSave(): CafeSource {
+        val normalizedBoxName = boxName.trim()
+        val normalizedBoardUrl = boardUrl.trim()
+        require(normalizedBoxName.isNotEmpty()) { "Cafe source boxName must not be blank." }
+        require(normalizedBoardUrl.isNotEmpty()) { "Cafe source boardUrl must not be blank." }
+        return copy(
+            boxName = normalizedBoxName,
+            boardUrl = normalizedBoardUrl,
+            titleKeywords = titleKeywords.map { it.trim() }.filter { it.isNotEmpty() }
+        )
     }
 }

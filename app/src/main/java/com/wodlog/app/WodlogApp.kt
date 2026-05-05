@@ -39,7 +39,8 @@ fun WodlogApp() {
             movementDao = database.movementDao(),
             wodResultDao = database.wodResultDao(),
             lifestyleLogDao = database.lifestyleLogDao(),
-            aiReportDao = database.aiReportDao()
+            aiReportDao = database.aiReportDao(),
+            cafeSourceDao = database.cafeSourceDao()
         )
     }
     val navController = rememberNavController()
