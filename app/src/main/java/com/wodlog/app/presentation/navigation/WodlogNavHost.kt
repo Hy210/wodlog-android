@@ -17,7 +17,7 @@ import com.wodlog.app.domain.repository.WodlogRepository
 import com.wodlog.app.presentation.calendar.CalendarRoute
 import com.wodlog.app.presentation.calendar.CalendarViewModel
 import com.wodlog.app.presentation.calendar.CalendarViewModelFactory
-import com.wodlog.app.presentation.cafeimport.CafeImportPlaceholderScreen
+import com.wodlog.app.presentation.cafeimport.CafeImportScreen
 import com.wodlog.app.presentation.compare.CompareRoute
 import com.wodlog.app.presentation.compare.CompareViewModel
 import com.wodlog.app.presentation.compare.CompareViewModelFactory
@@ -313,7 +313,7 @@ fun WodlogNavHost(
             }
         }
         composable(WodlogRoute.CafeImport.placeholderRoute) {
-            CafeImportPlaceholderScreen(
+            CafeImportScreen(
                 cafeSource = null,
                 cafeSourceId = 0L,
                 onBackClick = {
@@ -333,7 +333,7 @@ fun WodlogNavHost(
                 ?.getLong(WodlogRoute.CafeImport.cafeSourceIdArgument)
                 ?: 0L
             val cafeSources by repository.observeCafeSources().collectAsState(initial = emptyList())
-            CafeImportPlaceholderScreen(
+            CafeImportScreen(
                 cafeSource = cafeSources.firstOrNull { it.id == cafeSourceId },
                 cafeSourceId = cafeSourceId,
                 onBackClick = {
