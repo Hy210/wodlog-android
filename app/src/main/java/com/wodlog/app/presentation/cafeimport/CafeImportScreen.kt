@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.wodlog.app.domain.model.CafeSource
 import com.wodlog.app.domain.model.CafePostCandidate
+import com.wodlog.app.domain.model.ImportedWodText
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSecondaryButton
@@ -44,6 +45,7 @@ fun CafeImportScreen(
     cafeSource: CafeSource?,
     cafeSourceId: Long,
     onBackClick: () -> Unit,
+    onImportedWodTextReady: (ImportedWodText) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (cafeSource == null) {
@@ -57,6 +59,7 @@ fun CafeImportScreen(
 
     var webView by remember { mutableStateOf<WebView?>(null) }
     val candidateExtractor = remember { CafePostCandidateExtractor() }
+    val importedWodTextExtractor = remember { ImportedWodTextExtractor() }
     var state by remember(cafeSource.id) {
         mutableStateOf(
             CafeImportUiState(
@@ -93,9 +96,10 @@ fun CafeImportScreen(
         CafeImportActions(
             isLoading = state.isLoading,
             isExtractingCandidates = state.isExtractingCandidates,
+            isExtractingImportedText = state.isExtractingImportedText,
             onBackClick = handleBack,
             onReloadClick = {
-                state = state.copy(errorMessage = null)
+                state = state.copy(errorMessage = null, importedTextMessage = null)
                 webView?.reload()
             },
             onFindCandidatesClick = {
@@ -131,6 +135,43 @@ fun CafeImportScreen(
                         }
                     )
                 }
+            },
+            onImportTextClick = {
+                val currentWebView = webView
+                if (currentWebView == null) {
+                    state = state.copy(
+                        importedTextMessage = "본문을 가져오지 못했습니다. 게시글 화면에서 다시 시도해 주세요."
+                    )
+                    return@CafeImportActions
+                }
+
+                val currentPageUrl = state.currentUrl.ifBlank { state.initialUrl }
+                state = state.copy(
+                    isExtractingImportedText = true,
+                    importedTextMessage = null,
+                    errorMessage = null
+                )
+                currentWebView.evaluateJavascript(ImportedWodTextExtractionScript) { result ->
+                    val javascriptResult = result.orEmpty()
+                    val importedWodText = importedWodTextExtractor.extract(
+                        evaluateJavascriptResult = javascriptResult,
+                        fallbackSourceUrl = currentPageUrl
+                    )
+                    if (importedWodText == null) {
+                        val message = if (javascriptResult.isBlank() || javascriptResult.trim() == "null") {
+                            "본문을 가져오지 못했습니다. 게시글 화면에서 다시 시도해 주세요."
+                        } else {
+                            "가져올 본문을 찾지 못했습니다. 복사해서 WOD 추가에 직접 붙여넣을 수 있습니다."
+                        }
+                        state = state.copy(
+                            isExtractingImportedText = false,
+                            importedTextMessage = message
+                        )
+                    } else {
+                        state = state.copy(isExtractingImportedText = false)
+                        onImportedWodTextReady(importedWodText)
+                    }
+                }
             }
         )
         state.errorMessage?.let { errorMessage ->
@@ -139,6 +180,14 @@ fun CafeImportScreen(
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.testTag("text-cafe-import-error")
+            )
+        }
+        state.importedTextMessage?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.testTag("text-cafe-import-text-error")
             )
         }
         Box(
@@ -239,10 +288,13 @@ private fun CafeImportHeader(
 private fun CafeImportActions(
     isLoading: Boolean,
     isExtractingCandidates: Boolean,
+    isExtractingImportedText: Boolean,
     onBackClick: () -> Unit,
     onReloadClick: () -> Unit,
-    onFindCandidatesClick: () -> Unit
+    onFindCandidatesClick: () -> Unit,
+    onImportTextClick: () -> Unit
 ) {
+    val isBusy = isLoading || isExtractingCandidates || isExtractingImportedText
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -258,7 +310,7 @@ private fun CafeImportActions(
             WodLogPrimaryButton(
                 text = "새로고침",
                 onClick = onReloadClick,
-                enabled = !isLoading && !isExtractingCandidates,
+                enabled = !isBusy,
                 modifier = Modifier
                     .weight(1f)
                     .testTag("action-webview-reload")
@@ -267,12 +319,29 @@ private fun CafeImportActions(
         WodLogPrimaryButton(
             text = "현재 목록에서 WOD 찾기",
             onClick = onFindCandidatesClick,
-            enabled = !isLoading && !isExtractingCandidates,
+            enabled = !isBusy,
             loading = isExtractingCandidates,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("action-find-wod-candidates")
         )
+        WodLogPrimaryButton(
+            text = "본문 가져오기",
+            onClick = onImportTextClick,
+            enabled = !isBusy,
+            loading = isExtractingImportedText,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("action-import-wod-text")
+        )
+        if (isExtractingImportedText) {
+            Text(
+                text = "본문을 확인하는 중입니다.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("text-import-wod-text-loading")
+            )
+        }
     }
 }
 

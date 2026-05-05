@@ -18,6 +18,8 @@ import com.wodlog.app.presentation.calendar.CalendarRoute
 import com.wodlog.app.presentation.calendar.CalendarViewModel
 import com.wodlog.app.presentation.calendar.CalendarViewModelFactory
 import com.wodlog.app.presentation.cafeimport.CafeImportScreen
+import com.wodlog.app.presentation.cafeimport.ImportedWodPreviewHolder
+import com.wodlog.app.presentation.cafeimport.ImportedWodPreviewScreen
 import com.wodlog.app.presentation.compare.CompareRoute
 import com.wodlog.app.presentation.compare.CompareViewModel
 import com.wodlog.app.presentation.compare.CompareViewModelFactory
@@ -318,6 +320,10 @@ fun WodlogNavHost(
                 cafeSourceId = 0L,
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onImportedWodTextReady = { importedWodText ->
+                    ImportedWodPreviewHolder.current = importedWodText
+                    navController.navigate(WodlogRoute.ImportedWodPreview.route)
                 }
             )
         }
@@ -336,6 +342,18 @@ fun WodlogNavHost(
             CafeImportScreen(
                 cafeSource = cafeSources.firstOrNull { it.id == cafeSourceId },
                 cafeSourceId = cafeSourceId,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onImportedWodTextReady = { importedWodText ->
+                    ImportedWodPreviewHolder.current = importedWodText
+                    navController.navigate(WodlogRoute.ImportedWodPreview.route)
+                }
+            )
+        }
+        composable(WodlogRoute.ImportedWodPreview.route) {
+            ImportedWodPreviewScreen(
+                importedWodText = ImportedWodPreviewHolder.current,
                 onBackClick = {
                     navController.popBackStack()
                 }

@@ -39,6 +39,7 @@ sealed class WodlogRoute(
 
         fun createRoute(cafeSourceId: Long): String = "cafe-import/$cafeSourceId"
     }
+    data object ImportedWodPreview : WodlogRoute("imported-wod-preview", "가져온 WOD 미리보기")
     data object Profile : WodlogRoute("profile", "프로필")
     data object Lifestyle : WodlogRoute("lifestyle", "생활습관")
     data object CafeSourceSettings : WodlogRoute("cafe-source-settings", "카페 소스 설정")
@@ -56,6 +57,7 @@ sealed class WodlogRoute(
                 Prompt,
                 ReportEdit,
                 CafeImport,
+                ImportedWodPreview,
                 Profile,
                 Lifestyle,
                 CafeSourceSettings,

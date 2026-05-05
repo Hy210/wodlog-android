@@ -13,5 +13,7 @@ data class CafeImportUiState(
     val isExtractingCandidates: Boolean = false,
     val candidates: List<CafePostCandidate> = emptyList(),
     val isCandidateListVisible: Boolean = false,
-    val candidateMessage: String? = null
+    val candidateMessage: String? = null,
+    val isExtractingImportedText: Boolean = false,
+    val importedTextMessage: String? = null
 )
