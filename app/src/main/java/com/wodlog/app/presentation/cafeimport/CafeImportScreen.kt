@@ -42,6 +42,7 @@ import com.wodlog.app.presentation.components.WodLogPrimaryButton
 import com.wodlog.app.presentation.components.WodLogSecondaryButton
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import android.view.MotionEvent
 
 @Composable
 fun CafeImportScreen(
@@ -440,7 +441,7 @@ private fun CafeWebView(
 ) {
     AndroidView(
         modifier = modifier
-            .fillMaxHeight()
+            .fillMaxSize()
             .testTag("cafe-import-webview"),
         factory = { context ->
             WebView(context).apply {
@@ -451,6 +452,24 @@ private fun CafeWebView(
                 settings.javaScriptEnabled = true
                 settings.allowFileAccess = false
                 settings.allowContentAccess = false
+
+                isHorizontalScrollBarEnabled = true
+                isVerticalScrollBarEnabled = true
+
+                setOnTouchListener { view, event ->
+                    when (event.actionMasked){
+                        MotionEvent.ACTION_DOWN,
+                        MotionEvent.ACTION_MOVE ->{
+                            view.parent?.requestDisallowInterceptTouchEvent(true)
+                        }
+
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->{
+                            view.parent?.requestDisallowInterceptTouchEvent(false)
+                        }
+                    }
+                    false
+                }
+
                 webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(
                         view: WebView,
