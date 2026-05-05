@@ -437,7 +437,7 @@ private fun CafeWebView(
     AndroidView(
         modifier = modifier
             .fillMaxHeight()
-            .heightIn(min = 320.dp)
+            .height(720.dp)
             .testTag("cafe-import-webview"),
         factory = { context ->
             WebView(context).apply {
