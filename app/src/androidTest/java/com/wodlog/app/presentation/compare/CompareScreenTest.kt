@@ -11,8 +11,12 @@ import com.wodlog.app.domain.analysis.AnalysisSummary
 import com.wodlog.app.domain.analysis.CategoryShare
 import com.wodlog.app.domain.analysis.ComparisonLabel
 import com.wodlog.app.domain.analysis.WodComparisonItem
+import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.MovementCategory
 import com.wodlog.app.domain.model.RxStatus
+import com.wodlog.app.domain.model.ScoreType
+import com.wodlog.app.domain.model.WodResult
+import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.model.WodType
 import com.wodlog.app.presentation.theme.WodlogTheme
 import java.time.LocalDate
@@ -54,13 +58,17 @@ class CompareScreenTest {
     }
 
     @Test
-    fun compareScreen_displaysMetricsCategoryBreakdownAndNeutralSummary() {
+    fun compareScreen_displaysOriginalDataMetricsCategoryBreakdownAndNeutralSummary() {
         composeRule.setContent {
             WodlogTheme {
                 CompareScreen(state = summaryState())
             }
         }
 
+        composeRule.onNodeWithText("Older WOD raw text").assertIsDisplayed()
+        composeRule.onNodeWithText("1. Older section").assertIsDisplayed()
+        composeRule.onNodeWithText("1. Older movement - Strength / 30 reps").assertIsDisplayed()
+        composeRule.onNodeWithText("Score type: TIME").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Total reps").fetchSemanticsNodes().isNotEmpty())
         assertTrue(composeRule.onAllNodesWithText("Load volume").fetchSemanticsNodes().isNotEmpty())
         assertTrue(composeRule.onAllNodesWithText("Distance").fetchSemanticsNodes().isNotEmpty())
@@ -68,7 +76,7 @@ class CompareScreenTest {
         composeRule.onNodeWithTag("compare-category-breakdown").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("STRENGTH: 2개 67%").assertIsDisplayed()
         composeRule.onNodeWithTag("compare-neutral-summary").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("?뺣웾 吏?쒕쭔 ?쒖떆?⑸땲??").assertIsDisplayed()
+        composeRule.onNodeWithText("정량 지표만 표시합니다.").assertIsDisplayed()
     }
 
     @Test
@@ -129,8 +137,8 @@ class CompareScreenTest {
                 )
             ),
             neutralSummary = listOf(
-                "理쒓렐 3??湲곕줉???좎쭨?쒖쑝濡??붿빟?덉뒿?덈떎.",
-                "?뺣웾 吏?쒕쭔 ?쒖떆?⑸땲??"
+                "최근 3회 기록을 날짜순으로 요약했습니다.",
+                "정량 지표만 표시합니다."
             ),
             hasEnoughDataForComparison = true
         ),
@@ -149,6 +157,32 @@ class CompareScreenTest {
         date = date,
         title = title,
         wodType = WodType.FOR_TIME,
+        rawText = "$title raw text",
+        notes = "$title notes",
+        sections = listOf(
+            WodSection(
+                wodId = wodId,
+                name = "${title.removeSuffix(" WOD")} section",
+                orderIndex = 0
+            )
+        ),
+        movements = listOf(
+            Movement(
+                wodId = wodId,
+                name = "${title.removeSuffix(" WOD")} movement",
+                category = MovementCategory.STRENGTH,
+                reps = reps,
+                orderIndex = 0
+            )
+        ),
+        result = WodResult(
+            wodId = wodId,
+            scoreType = ScoreType.TIME,
+            rxStatus = RxStatus.RX,
+            rpe = 7,
+            createdAt = java.time.Instant.parse("2026-05-04T00:00:00Z"),
+            updatedAt = java.time.Instant.parse("2026-05-04T00:00:00Z")
+        ),
         totalReps = reps,
         totalLoadVolume = reps * 20.0,
         totalDistance = 100.0,

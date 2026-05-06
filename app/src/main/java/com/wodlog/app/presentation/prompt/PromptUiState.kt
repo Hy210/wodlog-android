@@ -5,5 +5,6 @@ data class PromptUiState(
     val promptText: String = "",
     val errorMessage: String? = null,
     val copyMessage: String? = null,
+    val lengthWarningMessage: String? = null,
     val wodTitle: String? = null
 )

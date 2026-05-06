@@ -56,6 +56,8 @@ import com.wodlog.app.presentation.woddetail.WodDetailViewModelFactory
 import com.wodlog.app.presentation.wodedit.WodEditRoute
 import com.wodlog.app.presentation.wodedit.WodEditViewModel
 import com.wodlog.app.presentation.wodedit.WodEditViewModelFactory
+import com.wodlog.app.presentation.wodedit.WodEditScreen
+import com.wodlog.app.presentation.wodedit.WodEditUiState
 
 @Composable
 fun WodlogNavHost(
@@ -146,6 +148,63 @@ fun WodlogNavHost(
                 }
             )
         }
+        composable(
+            route = WodlogRoute.WodEditExisting.route,
+            arguments = listOf(
+                navArgument(WodlogRoute.WodEditExisting.wodIdArgument) {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val wodId = backStackEntry.arguments?.getLong(WodlogRoute.WodEditExisting.wodIdArgument)
+            if (wodId == null) {
+                WodEditScreen(
+                    state = WodEditUiState(
+                        message = "Missing WOD id."
+                    ),
+                    onDateChange = {},
+                    onTitleChange = {},
+                    onWodTypeChange = {},
+                    onRawTextChange = {},
+                    onMemoChange = {},
+                    onAddSection = {},
+                    onRemoveSection = {},
+                    onSectionTitleChange = { _, _ -> },
+                    onSectionMemoChange = { _, _ -> },
+                    onAddMovement = {},
+                    onRemoveMovement = {},
+                    onMovementNameChange = { _, _ -> },
+                    onMovementWeightChange = { _, _ -> },
+                    onMovementRepsChange = { _, _ -> },
+                    onMovementSetsChange = { _, _ -> },
+                    onMovementRoundsChange = { _, _ -> },
+                    onMovementDistanceChange = { _, _ -> },
+                    onMovementCaloriesChange = { _, _ -> },
+                    onMovementTimeChange = { _, _ -> },
+                    onMovementCategoryChange = { _, _ -> },
+                    onMovementMemoChange = { _, _ -> },
+                    onSaveClick = {}
+                )
+            } else {
+                val wodEditViewModel: WodEditViewModel = viewModel(
+                    factory = WodEditViewModelFactory(
+                        repository = repository,
+                        editingWodId = wodId
+                    )
+                )
+                WodEditRoute(
+                    viewModel = wodEditViewModel,
+                    onSaved = { savedWodId ->
+                        navController.navigate(WodlogRoute.WodDetail.createRoute(savedWodId)) {
+                            popUpTo(WodlogRoute.WodEditExisting.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+        }
         composable(WodlogRoute.WodDetail.placeholderRoute) {
             WodDetailScreen(
                 state = WodDetailUiState(errorMessage = "Open a saved WOD to view details."),
@@ -157,6 +216,9 @@ fun WodlogNavHost(
                 },
                 onReportClick = {
                     navController.navigate(WodlogRoute.ReportEdit.placeholderRoute)
+                },
+                onEditWodClick = {
+                    navController.navigate(WodlogRoute.WodEdit.route)
                 }
             )
         }
@@ -180,6 +242,9 @@ fun WodlogNavHost(
                     },
                     onReportClick = {
                         navController.navigate(WodlogRoute.ReportEdit.placeholderRoute)
+                    },
+                    onEditWodClick = {
+                        navController.navigate(WodlogRoute.WodEdit.route)
                     }
                 )
             } else {
@@ -197,6 +262,9 @@ fun WodlogNavHost(
                     },
                     onReportClick = {
                         navController.navigate(WodlogRoute.ReportEdit.createRoute(wodId))
+                    },
+                    onEditWodClick = {
+                        navController.navigate(WodlogRoute.WodEditExisting.createRoute(wodId))
                     }
                 )
             }

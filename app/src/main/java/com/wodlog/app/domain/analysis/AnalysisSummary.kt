@@ -5,11 +5,13 @@ import com.wodlog.app.domain.model.MovementCategory
 import com.wodlog.app.domain.model.RxStatus
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
+import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.model.WodType
 import java.time.LocalDate
 
 data class WodAnalysisInput(
     val wod: Wod,
+    val sections: List<WodSection> = emptyList(),
     val movements: List<Movement> = emptyList(),
     val result: WodResult? = null
 )
@@ -27,6 +29,11 @@ data class WodComparisonItem(
     val date: LocalDate,
     val title: String,
     val wodType: WodType,
+    val rawText: String?,
+    val notes: String?,
+    val sections: List<WodSection>,
+    val movements: List<Movement>,
+    val result: WodResult?,
     val totalReps: Int,
     val totalLoadVolume: Double,
     val totalDistance: Double,

@@ -97,6 +97,11 @@ class CompareViewModelTest {
     fun loadComparison_queriesMovementsAndResultForEachWod() = runTest {
         val repository = FakeWodlogRepository(
             wods = listOf(wod(1), wod(2), wod(3)),
+            sectionsByWodId = mapOf(
+                1L to listOf(section(wodId = 1L, name = "Section 1")),
+                2L to listOf(section(wodId = 2L, name = "Section 2")),
+                3L to listOf(section(wodId = 3L, name = "Section 3"))
+            ),
             movementsByWodId = mapOf(
                 1L to listOf(movement(wodId = 1L)),
                 2L to listOf(movement(wodId = 2L)),
@@ -116,9 +121,11 @@ class CompareViewModelTest {
         viewModel.loadComparison()
         advanceUntilIdle()
 
+        assertEquals(listOf(1L, 2L, 3L), repository.sectionLookupIds)
         assertEquals(listOf(1L, 2L, 3L), repository.movementLookupIds)
         assertEquals(listOf(1L, 2L, 3L), repository.resultLookupIds)
         assertEquals(3, capturedInputs.size)
+        assertEquals("Section 1", capturedInputs.first { it.wod.id == 1L }.sections.single().name)
         assertEquals(1, capturedInputs.first { it.wod.id == 1L }.movements.size)
         assertEquals(RxStatus.RX, capturedInputs.first { it.wod.id == 2L }.result?.rxStatus)
     }
@@ -195,6 +202,17 @@ class CompareViewModelTest {
         )
     }
 
+    private fun section(
+        wodId: Long,
+        name: String
+    ): WodSection {
+        return WodSection(
+            wodId = wodId,
+            name = name,
+            orderIndex = 0
+        )
+    }
+
     private fun result(wodId: Long): WodResult {
         return WodResult(
             wodId = wodId,
@@ -215,6 +233,11 @@ class CompareViewModelTest {
                     date = LocalDate.of(2026, 5, 1),
                     title = "Summary WOD",
                     wodType = WodType.FOR_TIME,
+                    rawText = "Summary raw text",
+                    notes = "Summary notes",
+                    sections = listOf(section(wodId = wodId, name = "Summary section")),
+                    movements = listOf(movement(wodId = wodId, reps = 10)),
+                    result = result(wodId = wodId),
                     totalReps = 10,
                     totalLoadVolume = 100.0,
                     totalDistance = 0.0,
@@ -250,11 +273,13 @@ class MainDispatcherRule(
 
 private class FakeWodlogRepository(
     private val wods: List<Wod> = emptyList(),
+    private val sectionsByWodId: Map<Long, List<WodSection>> = emptyMap(),
     private val movementsByWodId: Map<Long, List<Movement>> = emptyMap(),
     private val resultsByWodId: Map<Long, WodResult> = emptyMap(),
     private val throwOnRecentWods: Boolean = false
 ) : WodlogRepository {
     var recentWodsCallCount = 0
+    val sectionLookupIds = mutableListOf<Long>()
     val movementLookupIds = mutableListOf<Long>()
     val resultLookupIds = mutableListOf<Long>()
 
@@ -267,6 +292,11 @@ private class FakeWodlogRepository(
     override suspend fun getMovementsForWod(wodId: Long): List<Movement> {
         movementLookupIds += wodId
         return movementsByWodId[wodId].orEmpty()
+    }
+
+    override suspend fun getSectionsForWod(wodId: Long): List<WodSection> {
+        sectionLookupIds += wodId
+        return sectionsByWodId[wodId].orEmpty()
     }
 
     override suspend fun getResultForWod(wodId: Long): WodResult? {
@@ -287,8 +317,6 @@ private class FakeWodlogRepository(
     override suspend fun saveWod(wod: Wod): Long = unused()
 
     override suspend fun deleteWod(id: Long): Unit = unused()
-
-    override suspend fun getSectionsForWod(wodId: Long): List<WodSection> = unused()
 
     override suspend fun saveWodSection(section: WodSection): Long = unused()
 

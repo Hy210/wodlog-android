@@ -15,6 +15,7 @@ class WodlogNavigationTest {
         assertTrue(routes.contains("compare"))
         assertTrue(routes.contains("settings"))
         assertTrue(routes.contains("wod-edit"))
+        assertTrue(routes.contains("wod-edit/saved/{wodId}"))
         assertTrue(routes.contains("wod-detail/{wodId}"))
         assertTrue(routes.contains("result-edit/{wodId}"))
         assertTrue(routes.contains("prompt/{wodId}"))
@@ -39,6 +40,11 @@ class WodlogNavigationTest {
     @Test
     fun wodDetailRoute_createsRouteWithWodId() {
         assertEquals("wod-detail/7", WodlogRoute.WodDetail.createRoute(7L))
+    }
+
+    @Test
+    fun wodEditExistingRoute_createsRouteWithWodId() {
+        assertEquals("wod-edit/saved/7", WodlogRoute.WodEditExisting.createRoute(7L))
     }
 
     @Test

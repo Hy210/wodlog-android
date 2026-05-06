@@ -87,4 +87,22 @@ class PromptScreenTest {
         composeRule.onNodeWithTag("text-prompt-copy-message").assertIsDisplayed()
         composeRule.onNodeWithText("Prompt copied").assertIsDisplayed()
     }
+
+    @Test
+    fun lengthWarning_isDisplayed() {
+        composeRule.setContent {
+            WodlogTheme {
+                PromptScreen(
+                    state = PromptUiState(
+                        promptText = "Long prompt",
+                        lengthWarningMessage = "질문지가 길어 일부 앱이나 기기에서 복사/붙여넣기가 불안정할 수 있습니다."
+                    ),
+                    onCopyClick = {}
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("text-prompt-length-warning").assertIsDisplayed()
+        composeRule.onNodeWithText("질문지가 길어 일부 앱이나 기기에서 복사/붙여넣기가 불안정할 수 있습니다.").assertIsDisplayed()
+    }
 }

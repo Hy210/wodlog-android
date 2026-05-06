@@ -7,6 +7,7 @@ import java.time.Instant
 import com.wodlog.app.util.ValidationError
 
 data class WodEditUiState(
+    val editingWodId: Long? = null,
     val dateInput: String = "",
     val titleInput: String = "",
     val wodType: WodType? = null,
@@ -17,6 +18,7 @@ data class WodEditUiState(
     val importedAt: Instant? = null,
     val sections: List<WodSectionInputState> = emptyList(),
     val movements: List<MovementInputState> = emptyList(),
+    val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val validationErrors: List<ValidationError> = emptyList(),
     val message: String? = null,
@@ -25,12 +27,14 @@ data class WodEditUiState(
 
 data class WodSectionInputState(
     val localId: String,
+    val originalId: Long? = null,
     val titleInput: String = "",
     val memoInput: String = ""
 )
 
 data class MovementInputState(
     val localId: String,
+    val originalId: Long? = null,
     val sectionLocalId: String? = null,
     val nameInput: String = "",
     val weightInput: String = "",

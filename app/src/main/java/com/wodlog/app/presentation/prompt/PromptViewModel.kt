@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val PROMPT_LENGTH_WARNING_BYTES = 300_000
+
 class PromptViewModel(
     private val repository: WodlogRepository,
     private val promptGenerator: (PromptInput) -> String = PromptGenerator::generate,
@@ -29,13 +31,15 @@ class PromptViewModel(
                 it.copy(
                     isLoading = true,
                     errorMessage = null,
-                    copyMessage = null
+                    copyMessage = null,
+                    lengthWarningMessage = null
                 )
             }
 
             runCatching {
                 val wod = repository.getWodById(wodId)
                     ?: return@runCatching PromptUiState(errorMessage = "WOD not found.")
+                val sections = repository.getSectionsForWod(wod.id)
                 val movements = repository.getMovementsForWod(wod.id)
                 val result = repository.getResultForWod(wod.id)
                 val profile = repository.getUserProfile()
@@ -47,6 +51,7 @@ class PromptViewModel(
                     PromptInput(
                         profile = profile,
                         currentWod = wod,
+                        sections = sections,
                         movements = movements,
                         result = result,
                         recentSummary = recentSummary,
@@ -56,6 +61,7 @@ class PromptViewModel(
 
                 PromptUiState(
                     promptText = promptText,
+                    lengthWarningMessage = promptText.lengthWarningMessage(),
                     wodTitle = wod.title
                 )
             }.onSuccess { state ->
@@ -90,6 +96,7 @@ class PromptViewModel(
         val inputs = recentWods.map { wod ->
             WodAnalysisInput(
                 wod = wod,
+                sections = repository.getSectionsForWod(wod.id),
                 movements = repository.getMovementsForWod(wod.id),
                 result = repository.getResultForWod(wod.id)
             )
@@ -100,5 +107,13 @@ class PromptViewModel(
 
     private companion object {
         const val RECENT_WOD_LIMIT = 3
+    }
+}
+
+private fun String.lengthWarningMessage(): String? {
+    return if (toByteArray(Charsets.UTF_8).size >= PROMPT_LENGTH_WARNING_BYTES) {
+        "질문지가 길어 일부 앱이나 기기에서 복사/붙여넣기가 불안정할 수 있습니다."
+    } else {
+        null
     }
 }

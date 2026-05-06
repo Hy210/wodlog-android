@@ -9,6 +9,7 @@ import com.wodlog.app.domain.model.ScoreType
 import com.wodlog.app.domain.model.UserProfile
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
+import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.model.WodType
 import java.time.Instant
 import java.time.LocalDate
@@ -88,6 +89,18 @@ class PromptGeneratorTest {
     }
 
     @Test
+    fun generate_whenRecentSummaryExists_includesOriginalRecentWodData() {
+        val prompt = PromptGenerator.generate(sampleInput())
+
+        assertTrue(prompt.contains("Older raw text"))
+        assertTrue(prompt.contains("Previous section"))
+        assertTrue(prompt.contains("Previous movement"))
+        assertTrue(prompt.contains("Score type: TIME"))
+        assertTrue(prompt.contains("Result memo for previous"))
+        assertTrue(prompt.contains("자동 계산 참고"))
+    }
+
+    @Test
     fun generate_withOptionalNulls_doesNotExposeNullString() {
         val prompt = PromptGenerator.generate(
             PromptInput(
@@ -138,6 +151,17 @@ class PromptGeneratorTest {
         assertTrue(prompt.contains("의학적 진단이 아니라 일반적인 운동 기록 분석"))
     }
 
+    @Test
+    fun generate_appendsAnswerFormatAfterQuestions() {
+        val prompt = PromptGenerator.generate(sampleInput())
+
+        assertTrue(prompt.indexOf("## 답변 형식") > prompt.indexOf("## 질문"))
+        assertTrue(prompt.contains("적당한 이모티콘"))
+        assertTrue(prompt.contains("가독성을 높여 주세요."))
+        assertTrue(prompt.contains("마지막에는 \"요약\" 섹션"))
+        assertTrue(prompt.contains("3~5줄"))
+    }
+
     private fun sampleInput(): PromptInput {
         return PromptInput(
             profile = UserProfile(
@@ -148,6 +172,7 @@ class PromptGeneratorTest {
                 updatedAt = now
             ),
             currentWod = sampleWod(),
+            sections = listOf(WodSection(wodId = 3L, name = "Metcon", orderIndex = 0)),
             movements = listOf(sampleMovement()),
             result = sampleResult(),
             recentSummary = sampleSummary(),
@@ -239,6 +264,27 @@ class PromptGeneratorTest {
             date = date,
             title = title,
             wodType = WodType.FOR_TIME,
+            rawText = if (label == ComparisonLabel.Older) "Older raw text" else "Raw text for $title",
+            notes = "Notes for $title",
+            sections = listOf(WodSection(wodId = wodId, name = if (label == ComparisonLabel.Previous) "Previous section" else "Section", orderIndex = 0)),
+            movements = listOf(
+                Movement(
+                    wodId = wodId,
+                    name = if (label == ComparisonLabel.Previous) "Previous movement" else "Summary movement",
+                    category = MovementCategory.STRENGTH,
+                    reps = reps,
+                    orderIndex = 0
+                )
+            ),
+            result = WodResult(
+                wodId = wodId,
+                scoreType = ScoreType.TIME,
+                rxStatus = RxStatus.RX,
+                rpe = 8,
+                memo = if (label == ComparisonLabel.Previous) "Result memo for previous" else null,
+                createdAt = now,
+                updatedAt = now
+            ),
             totalReps = reps,
             totalLoadVolume = 1200.0,
             totalDistance = 0.0,

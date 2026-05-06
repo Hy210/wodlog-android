@@ -6,6 +6,7 @@ import com.wodlog.app.domain.model.RxStatus
 import com.wodlog.app.domain.model.ScoreType
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
+import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.model.WodType
 import java.time.Instant
 import java.time.LocalDate
@@ -150,6 +151,35 @@ class AnalysisSummaryGeneratorTest {
     }
 
     @Test
+    fun generate_preservesRawSectionsMovementsAndResultForPromptAndCompare() {
+        val sections = listOf(section("Strength", orderIndex = 1), section("Warmup", orderIndex = 0))
+        val movements = listOf(
+            movement(reps = 5, weightKg = 100.0, category = MovementCategory.STRENGTH).copy(orderIndex = 1),
+            movement(distanceMeters = 400.0, category = MovementCategory.CARDIO).copy(orderIndex = 0)
+        )
+        val result = result(rxStatus = RxStatus.SCALED, rpe = 9)
+        val summary = AnalysisSummaryGenerator.generate(
+            listOf(
+                input(
+                    id = 1,
+                    rawText = "Original WOD text",
+                    notes = "Original memo",
+                    sections = sections,
+                    movements = movements,
+                    result = result
+                )
+            )
+        )
+
+        val item = summary.items.single()
+        assertEquals("Original WOD text", item.rawText)
+        assertEquals("Original memo", item.notes)
+        assertEquals(listOf("Warmup", "Strength"), item.sections.map { it.name })
+        assertEquals(listOf(MovementCategory.CARDIO, MovementCategory.STRENGTH), item.movements.map { it.category })
+        assertEquals(result, item.result)
+    }
+
+    @Test
     fun generate_createsSummaryForSingleInputWithoutEnoughComparisonData() {
         val summary = AnalysisSummaryGenerator.generate(listOf(input(1)))
 
@@ -175,6 +205,9 @@ class AnalysisSummaryGeneratorTest {
         id: Long,
         title: String = "WOD $id",
         date: LocalDate = LocalDate.of(2026, 5, id.toInt().coerceAtLeast(1)),
+        rawText: String? = null,
+        notes: String? = null,
+        sections: List<WodSection> = emptyList(),
         movements: List<Movement> = emptyList(),
         result: WodResult? = null
     ): WodAnalysisInput = WodAnalysisInput(
@@ -183,11 +216,23 @@ class AnalysisSummaryGeneratorTest {
             date = date,
             title = title,
             type = WodType.FOR_TIME,
+            rawText = rawText,
+            notes = notes,
             createdAt = NOW,
             updatedAt = NOW
         ),
+        sections = sections,
         movements = movements,
         result = result
+    )
+
+    private fun section(
+        name: String,
+        orderIndex: Int
+    ): WodSection = WodSection(
+        wodId = 1L,
+        name = name,
+        orderIndex = orderIndex
     )
 
     private fun movement(

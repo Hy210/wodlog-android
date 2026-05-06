@@ -29,8 +29,11 @@ import androidx.compose.ui.unit.dp
 import com.wodlog.app.domain.analysis.CategoryShare
 import com.wodlog.app.domain.analysis.ComparisonLabel
 import com.wodlog.app.domain.analysis.WodComparisonItem
+import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.MovementCategory
 import com.wodlog.app.domain.model.RxStatus
+import com.wodlog.app.domain.model.WodResult
+import com.wodlog.app.domain.model.WodSection
 import com.wodlog.app.domain.model.WodType
 import com.wodlog.app.presentation.components.WodLogCard
 import com.wodlog.app.presentation.components.WodLogEmptyState
@@ -210,10 +213,157 @@ private fun WodComparisonCard(item: WodComparisonItem) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            WodLogMetricChip(label = "원문", value = item.rawText.displayShortStatus())
+            WodLogMetricChip(label = "Section", value = item.sections.size.toString(), unit = "개")
+            WodLogMetricChip(label = "Movement", value = item.movements.size.toString(), unit = "개")
+            WodLogMetricChip(label = "Result", value = if (item.result == null) "미입력" else "입력됨")
+        }
+        TextBlock(
+            title = "WOD 원문",
+            text = item.rawText.display(),
+            modifier = Modifier.testTag("compare-raw-text")
+        )
+        SectionList(sections = item.sections)
+        MovementList(movements = item.movements)
+        ResultBlock(result = item.result)
+        HorizontalDivider()
+        Text(
+            text = "자동 계산 참고",
+            style = MaterialTheme.typography.titleSmall
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             WodLogMetricChip(label = "Total reps", value = item.totalReps.toString(), unit = "reps")
             WodLogMetricChip(label = "Load volume", value = formatDouble(item.totalLoadVolume), unit = "kg")
             WodLogMetricChip(label = "Distance", value = formatDouble(item.totalDistance), unit = "m")
             WodLogMetricChip(label = "Calories", value = formatDouble(item.totalCalories), unit = "kcal")
+        }
+    }
+}
+
+@Composable
+private fun TextBlock(
+    title: String,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SectionList(sections: List<WodSection>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("compare-section-list"),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = "Section",
+            style = MaterialTheme.typography.titleSmall
+        )
+        if (sections.isEmpty()) {
+            Text(
+                text = "미입력",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            sections.sortedBy { it.orderIndex }.forEachIndexed { index, section ->
+                Text(
+                    text = "${index + 1}. ${section.name}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MovementList(movements: List<Movement>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("compare-movement-list"),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = "Movement",
+            style = MaterialTheme.typography.titleSmall
+        )
+        if (movements.isEmpty()) {
+            Text(
+                text = "미입력",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            movements.sortedBy { it.orderIndex }.forEachIndexed { index, movement ->
+                Text(
+                    text = movement.display(index),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResultBlock(result: WodResult?) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("compare-result-block"),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = "Result",
+            style = MaterialTheme.typography.titleSmall
+        )
+        if (result == null) {
+            Text(
+                text = "미입력",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            listOf(
+                "Score type: ${result.scoreType.name}",
+                result.timeSeconds?.let { "Time: ${it} sec" },
+                "Rounds/Reps: ${result.rounds.display()} rounds + ${result.extraReps.display()} reps",
+                "Total reps: ${result.totalReps.display()}",
+                "Load: ${result.loadKg.display("kg")}",
+                "Distance: ${result.distanceMeters.display("m")}",
+                "Calories: ${result.calories.display("kcal")}",
+                "Rx status: ${result.rxStatus.displayName()}",
+                "RPE: ${result.rpe.display()}",
+                "Condition: ${result.condition?.name.display()}",
+                "Memo: ${result.memo.display()}"
+            ).filterNotNull().forEach { line ->
+                Text(
+                    text = line,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -313,6 +463,38 @@ private fun MovementCategory.displayName(): String = when (this) {
     MovementCategory.WEIGHTLIFTING -> "Weightlifting"
     MovementCategory.BODYWEIGHT -> "Bodyweight"
     MovementCategory.OTHER -> "Other"
+}
+
+private fun Movement.display(index: Int): String {
+    val metrics = listOfNotNull(
+        category?.displayName(),
+        weightKg?.let { "${formatDouble(it)} kg" },
+        reps?.let { "$it reps" },
+        sets?.let { "$it sets" },
+        rounds?.let { "$it rounds" },
+        distanceMeters?.let { "${formatDouble(it)} m" },
+        calories?.let { "${formatDouble(it)} kcal" },
+        durationSeconds?.let { "$it sec" },
+        notes?.trim()?.takeIf { it.isNotEmpty() }
+    ).joinToString(separator = " / ")
+    return if (metrics.isBlank()) {
+        "${index + 1}. $name"
+    } else {
+        "${index + 1}. $name - $metrics"
+    }
+}
+
+private fun String?.display(): String =
+    this?.trim()?.takeIf { it.isNotEmpty() } ?: "미입력"
+
+private fun Int?.display(): String =
+    this?.toString() ?: "미입력"
+
+private fun Double?.display(unit: String): String =
+    this?.let { "${formatDouble(it)} $unit" } ?: "미입력"
+
+private fun String?.displayShortStatus(): String {
+    return if (isNullOrBlank()) "미입력" else "있음"
 }
 
 private fun formatDouble(value: Double): String =

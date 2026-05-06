@@ -96,6 +96,16 @@ fun PromptScreen(
             }
         }
 
+        state.lengthWarningMessage?.let { message ->
+            WodLogCard(outlined = false, modifier = Modifier.fillMaxWidth()) {
+                WodLogStatusChip(
+                    text = message,
+                    tone = WodLogStatusChipTone.Warning,
+                    modifier = Modifier.testTag("text-prompt-length-warning")
+                )
+            }
+        }
+
         state.wodTitle?.let { title ->
             WodLogCard(
                 modifier = Modifier.fillMaxWidth(),

@@ -111,11 +111,15 @@ fun WodEditScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "WOD 작성",
+            text = if (state.editingWodId == null) "WOD 작성" else "WOD 수정",
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = "운동 직후 빠르게 제목, 유형, 원문을 남기세요.",
+            text = if (state.editingWodId == null) {
+                "운동 직후 빠르게 제목, 유형, 원문을 남기세요."
+            } else {
+                "저장된 WOD 내용을 확인하고 필요한 부분만 고치세요."
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -268,9 +272,15 @@ fun WodEditScreen(
         }
 
         WodLogPrimaryButton(
-            text = if (state.isSaving) "저장 중..." else "WOD 저장",
+            text = if (state.isSaving) {
+                "저장 중..."
+            } else if (state.editingWodId == null) {
+                "WOD 저장"
+            } else {
+                "수정 저장"
+            },
             onClick = onSaveClick,
-            enabled = !state.isSaving,
+            enabled = !state.isSaving && !state.isLoading,
             loading = state.isSaving,
             modifier = Modifier
                 .fillMaxWidth()

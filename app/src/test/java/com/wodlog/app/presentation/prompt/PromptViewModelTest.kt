@@ -91,17 +91,21 @@ class PromptViewModelTest {
     @Test
     fun loadPrompt_passesRecentSummaryToPromptGenerator() = runTest {
         repository.wods[1L] = wod(id = 1L, title = "Current")
+        repository.sectionsByWodId[1L] = listOf(section(wodId = 1L, name = "Current section"))
         repository.recentWods = listOf(
             wod(id = 1L, title = "Current"),
             wod(id = 2L, title = "Previous")
         )
+        repository.sectionsByWodId[2L] = listOf(section(wodId = 2L, name = "Previous section"))
         var capturedInput: PromptInput? = null
+        var capturedSummaryInputs: List<WodAnalysisInput> = emptyList()
         val viewModel = viewModel(
             promptGenerator = { input ->
                 capturedInput = input
-                "has summary=${input.recentSummary != null}"
+                "has summary=${input.recentSummary != null}, sections=${input.sections.size}"
             },
             summaryGenerator = { inputs ->
+                capturedSummaryInputs = inputs
                 AnalysisSummary(
                     items = emptyList(),
                     categoryBreakdown = listOf(
@@ -121,8 +125,25 @@ class PromptViewModelTest {
         advanceUntilIdle()
 
         assertNotNull(capturedInput?.recentSummary)
+        assertEquals("Current section", capturedInput?.sections?.single()?.name)
+        assertEquals(listOf("Current section", "Previous section"), capturedSummaryInputs.map { it.sections.single().name })
+        assertTrue(repository.requestedSectionWodIds.containsAll(listOf(1L, 2L)))
         assertTrue(repository.requestedMovementWodIds.containsAll(listOf(1L, 2L)))
         assertTrue(viewModel.uiState.value.promptText.contains("has summary=true"))
+    }
+
+    @Test
+    fun loadPrompt_whenPromptIsLong_setsLengthWarningMessage() = runTest {
+        repository.wods[1L] = wod(id = 1L, title = "Long prompt")
+        val viewModel = viewModel(
+            promptGenerator = { "가".repeat(100_000) }
+        )
+
+        viewModel.loadPrompt(1L)
+        advanceUntilIdle()
+
+        assertNotNull(viewModel.uiState.value.lengthWarningMessage)
+        assertEquals("Long prompt", viewModel.uiState.value.wodTitle)
     }
 
     @Test
@@ -195,6 +216,15 @@ class PromptViewModelTest {
         orderIndex = 0
     )
 
+    private fun section(
+        wodId: Long,
+        name: String
+    ): WodSection = WodSection(
+        wodId = wodId,
+        name = name,
+        orderIndex = 0
+    )
+
     private fun lifestyleLog(
         weekStartDate: LocalDate,
         mealSummary: String
@@ -209,12 +239,14 @@ class PromptViewModelTest {
 private class FakePromptRepository : WodlogRepository {
     val wods = mutableMapOf<Long, Wod>()
     val movementsByWodId = mutableMapOf<Long, List<Movement>>()
+    val sectionsByWodId = mutableMapOf<Long, List<WodSection>>()
     val resultsByWodId = mutableMapOf<Long, WodResult>()
     val lifestyleByWeekStart = mutableMapOf<LocalDate, LifestyleLog>()
     var profile: UserProfile? = null
     var recentWods: List<Wod> = emptyList()
     var throwOnGetWod = false
     var requestedLifestyleWeekStart: LocalDate? = null
+    val requestedSectionWodIds = mutableListOf<Long>()
     val requestedMovementWodIds = mutableListOf<Long>()
 
     override suspend fun getUserProfile(): UserProfile? = profile
@@ -236,7 +268,10 @@ private class FakePromptRepository : WodlogRepository {
 
     override suspend fun deleteWod(id: Long): Unit = unused()
 
-    override suspend fun getSectionsForWod(wodId: Long): List<WodSection> = unused()
+    override suspend fun getSectionsForWod(wodId: Long): List<WodSection> {
+        requestedSectionWodIds += wodId
+        return sectionsByWodId[wodId].orEmpty()
+    }
 
     override suspend fun saveWodSection(section: WodSection): Long = unused()
 

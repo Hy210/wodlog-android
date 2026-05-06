@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +41,8 @@ fun WodDetailRoute(
     wodId: Long,
     onEditResultClick: () -> Unit = {},
     onPromptClick: () -> Unit = {},
-    onReportClick: () -> Unit = {}
+    onReportClick: () -> Unit = {},
+    onEditWodClick: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -52,7 +54,8 @@ fun WodDetailRoute(
         state = state,
         onEditResultClick = onEditResultClick,
         onPromptClick = onPromptClick,
-        onReportClick = onReportClick
+        onReportClick = onReportClick,
+        onEditWodClick = onEditWodClick
     )
 }
 
@@ -62,7 +65,8 @@ fun WodDetailScreen(
     state: WodDetailUiState,
     onEditResultClick: () -> Unit = {},
     onPromptClick: () -> Unit = {},
-    onReportClick: () -> Unit = {}
+    onReportClick: () -> Unit = {},
+    onEditWodClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -196,7 +200,7 @@ fun WodDetailScreen(
                 )
 
                 WodLogCard(title = "요약", modifier = Modifier.fillMaxWidth()) {
-                    Text(
+                    SelectableDetailText(
                         text = if (state.movements.isEmpty()) {
                             "등록된 동작이 없습니다."
                         } else {
@@ -204,25 +208,22 @@ fun WodDetailScreen(
                                 .sortedBy { it.orderIndex }
                                 .joinToString(separator = "\n") { it.toDisplayText() }
                         },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.testTag("text-wod-detail-movements")
+                        tag = "text-wod-detail-movements",
+                        small = true
                     )
-                    Text(
+                    SelectableDetailText(
                         text = state.result?.toDisplayText() ?: "결과가 아직 없습니다.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.testTag("text-wod-detail-result-status")
+                        tag = "text-wod-detail-result-status",
+                        small = true
                     )
-                    Text(
+                    SelectableDetailText(
                         text = if (state.aiReports.isEmpty()) {
                             "저장된 GPT 답변이 없습니다."
                         } else {
                             "저장된 답변 ${state.aiReports.size}개"
                         },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.testTag("text-wod-detail-report-status")
+                        tag = "text-wod-detail-report-status",
+                        small = true
                     )
                 }
 
@@ -270,6 +271,14 @@ fun WodDetailScreen(
                     tag = "text-wod-detail-movements-detail"
                 )
 
+                WodLogSecondaryButton(
+                    text = "WOD 수정",
+                    onClick = onEditWodClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("action-edit-wod")
+                )
+
                 WodLogSectionHeader(
                     title = "결과와 분석",
                     description = "결과 수치와 저장된 GPT 답변을 봅니다."
@@ -288,11 +297,9 @@ fun WodDetailScreen(
                             result.loadKg?.let { WodLogMetricChip(label = "무게", value = it.toString(), unit = "kg") }
                         }
                     }
-                    Text(
+                    SelectableDetailText(
                         text = state.result?.toDisplayText() ?: "결과가 아직 없습니다.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.testTag("text-wod-detail-result-status-detail")
+                        tag = "text-wod-detail-result-status-detail"
                     )
                 }
 
@@ -307,34 +314,6 @@ fun WodDetailScreen(
                 )
             }
         }
-
-        WodLogSectionHeader(title = "액션")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            WodLogSecondaryButton(
-                text = "결과 입력",
-                onClick = onEditResultClick,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("action-edit-result-bottom")
-            )
-            WodLogSecondaryButton(
-                text = "질문지 만들기",
-                onClick = onPromptClick,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("action-open-prompt-bottom")
-            )
-        }
-        WodLogPrimaryButton(
-            text = "GPT 답변 보기",
-            onClick = onReportClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("action-open-report-bottom")
-        )
     }
 }
 
@@ -348,9 +327,24 @@ private fun DetailCard(
         title = title,
         modifier = Modifier.fillMaxWidth()
     ) {
+        SelectableDetailText(text = body, tag = tag)
+    }
+}
+
+@Composable
+private fun SelectableDetailText(
+    text: String,
+    tag: String,
+    small: Boolean = false
+) {
+    SelectionContainer {
         Text(
-            text = body,
-            style = MaterialTheme.typography.bodyMedium,
+            text = text,
+            style = if (small) {
+                MaterialTheme.typography.bodySmall
+            } else {
+                MaterialTheme.typography.bodyMedium
+            },
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag(tag)
         )

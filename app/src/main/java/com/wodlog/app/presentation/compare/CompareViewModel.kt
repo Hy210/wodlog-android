@@ -36,6 +36,7 @@ class CompareViewModel(
                     val inputs = recentWods.map { wod ->
                         WodAnalysisInput(
                             wod = wod,
+                            sections = repository.getSectionsForWod(wod.id),
                             movements = repository.getMovementsForWod(wod.id),
                             result = repository.getResultForWod(wod.id)
                         )

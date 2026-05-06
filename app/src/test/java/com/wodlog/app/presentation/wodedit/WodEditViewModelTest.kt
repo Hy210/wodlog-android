@@ -112,6 +112,29 @@ class WodEditViewModelTest {
     }
 
     @Test
+    fun initialState_withExistingWod_prefillsWodSectionsAndMovements() = runTest {
+        val existingViewModel = createExistingWodViewModel()
+        advanceUntilIdle()
+
+        val state = existingViewModel.uiState.value
+        assertEquals(7L, state.editingWodId)
+        assertEquals("2026-05-01", state.dateInput)
+        assertEquals("Fran", state.titleInput)
+        assertEquals(WodType.FOR_TIME, state.wodType)
+        assertEquals("21-15-9", state.rawTextInput)
+        assertEquals("original memo", state.memoInput)
+        assertEquals(WodSourceType.NAVER_CAFE_WEBVIEW, state.sourceType)
+        assertEquals("https://cafe.naver.com/box/123", state.sourceUrl)
+        assertEquals(1, state.sections.size)
+        assertEquals("Metcon", state.sections.single().titleInput)
+        assertEquals(1, state.movements.size)
+        assertEquals("Thruster", state.movements.single().nameInput)
+        assertEquals("43.0", state.movements.single().weightInput)
+        assertFalse(state.isLoading)
+        assertTrue(repository.savedWods.isEmpty())
+    }
+
+    @Test
     fun importedPrefill_doesNotOverwriteUserEdits() {
         val importedViewModel = WodEditViewModel(
             repository = repository,
@@ -303,6 +326,90 @@ class WodEditViewModelTest {
         assertEquals("https://cafe.naver.com/box/123", savedWod.sourceUrl)
         assertEquals(importedAt, savedWod.importedAt)
     }
+
+    @Test
+    fun saveWod_inEditMode_updatesExistingWodAndReplacesChildren() = runTest {
+        val existingViewModel = createExistingWodViewModel()
+        advanceUntilIdle()
+
+        existingViewModel.onTitleChange("Edited Fran")
+        existingViewModel.onRawTextChange("edited raw")
+        existingViewModel.onMemoChange("edited memo")
+        existingViewModel.removeMovement(existingViewModel.uiState.value.movements.single().localId)
+        existingViewModel.addMovement(existingViewModel.uiState.value.sections.single().localId)
+        val newMovementId = existingViewModel.uiState.value.movements.single().localId
+        existingViewModel.updateMovementName(newMovementId, "Pull-up")
+        existingViewModel.updateMovementReps(newMovementId, "45")
+
+        existingViewModel.saveWod()
+        advanceUntilIdle()
+
+        assertEquals(7L, existingViewModel.uiState.value.savedWodId)
+        assertEquals("수정되었습니다.", existingViewModel.uiState.value.message)
+
+        val savedWod = repository.savedWods.single()
+        assertEquals(7L, savedWod.id)
+        assertEquals("Edited Fran", savedWod.title)
+        assertEquals("edited raw", savedWod.rawText)
+        assertEquals("edited memo", savedWod.notes)
+        assertEquals(WodSourceType.NAVER_CAFE_WEBVIEW, savedWod.sourceType)
+        assertEquals("https://cafe.naver.com/box/123", savedWod.sourceUrl)
+        assertEquals(Instant.parse("2026-05-02T12:00:00Z"), savedWod.importedAt)
+        assertEquals(Instant.parse("2026-05-01T00:00:00Z"), savedWod.createdAt)
+        assertEquals(now, savedWod.updatedAt)
+
+        assertEquals(listOf(200L), repository.deletedMovementIds)
+        assertEquals(listOf(100L), repository.deletedSectionIds)
+        assertEquals(1, repository.savedSections.size)
+        assertEquals(1, repository.savedMovements.size)
+        assertEquals("Pull-up", repository.savedMovements.single().name)
+        assertEquals(45, repository.savedMovements.single().reps)
+    }
+
+    private fun createExistingWodViewModel(): WodEditViewModel {
+        val importedAt = Instant.parse("2026-05-02T12:00:00Z")
+        repository.existingWod = Wod(
+            id = 7L,
+            date = LocalDate.of(2026, 5, 1),
+            title = "Fran",
+            type = WodType.FOR_TIME,
+            rawText = "21-15-9",
+            notes = "original memo",
+            sourceType = WodSourceType.NAVER_CAFE_WEBVIEW,
+            sourceUrl = "https://cafe.naver.com/box/123",
+            importedAt = importedAt,
+            createdAt = Instant.parse("2026-05-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-05-01T00:00:00Z")
+        )
+        repository.existingSections = listOf(
+            WodSection(
+                id = 100L,
+                wodId = 7L,
+                name = "Metcon",
+                orderIndex = 0
+            )
+        )
+        repository.existingMovements = listOf(
+            Movement(
+                id = 200L,
+                wodId = 7L,
+                sectionId = 100L,
+                name = "Thruster",
+                category = MovementCategory.WEIGHTLIFTING,
+                weightKg = 43.0,
+                reps = 21,
+                orderIndex = 0,
+                notes = "scaled weight"
+            )
+        )
+        return WodEditViewModel(
+            repository = repository,
+            editingWodId = 7L,
+            todayProvider = { today },
+            nowProvider = { now },
+            localIdProvider = { localIds.removeFirst() }
+        )
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -319,13 +426,19 @@ class MainDispatcherRule(
 }
 
 private class FakeWodlogRepository : WodlogRepository {
+    var existingWod: Wod? = null
+    var existingSections: List<WodSection> = emptyList()
+    var existingMovements: List<Movement> = emptyList()
     val savedWods = mutableListOf<Wod>()
     val savedSections = mutableListOf<WodSection>()
     val savedMovements = mutableListOf<Movement>()
+    val deletedSectionIds = mutableListOf<Long>()
+    val deletedMovementIds = mutableListOf<Long>()
 
     override suspend fun saveWod(wod: Wod): Long {
-        val saved = wod.copy(id = 1L)
+        val saved = if (wod.id == 0L) wod.copy(id = 1L) else wod
         savedWods += saved
+        existingWod = saved
         return saved.id
     }
 
@@ -345,7 +458,7 @@ private class FakeWodlogRepository : WodlogRepository {
 
     override suspend fun saveUserProfile(profile: UserProfile): Long = unused()
 
-    override suspend fun getWodById(id: Long): Wod? = unused()
+    override suspend fun getWodById(id: Long): Wod? = existingWod?.takeIf { it.id == id }
 
     override suspend fun getWodsByDate(date: LocalDate): List<Wod> = unused()
 
@@ -355,13 +468,23 @@ private class FakeWodlogRepository : WodlogRepository {
 
     override suspend fun deleteWod(id: Long): Unit = unused()
 
-    override suspend fun getSectionsForWod(wodId: Long): List<WodSection> = unused()
+    override suspend fun getSectionsForWod(wodId: Long): List<WodSection> {
+        return existingSections.filter { it.wodId == wodId }
+    }
 
-    override suspend fun deleteWodSection(id: Long): Unit = unused()
+    override suspend fun deleteWodSection(id: Long) {
+        deletedSectionIds += id
+        existingSections = existingSections.filterNot { it.id == id }
+    }
 
-    override suspend fun getMovementsForWod(wodId: Long): List<Movement> = unused()
+    override suspend fun getMovementsForWod(wodId: Long): List<Movement> {
+        return existingMovements.filter { it.wodId == wodId }
+    }
 
-    override suspend fun deleteMovement(id: Long): Unit = unused()
+    override suspend fun deleteMovement(id: Long) {
+        deletedMovementIds += id
+        existingMovements = existingMovements.filterNot { it.id == id }
+    }
 
     override suspend fun getResultForWod(wodId: Long): WodResult? = unused()
 

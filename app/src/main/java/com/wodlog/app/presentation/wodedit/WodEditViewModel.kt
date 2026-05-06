@@ -23,12 +23,14 @@ import kotlinx.coroutines.launch
 
 class WodEditViewModel(
     private val repository: WodlogRepository,
+    private val editingWodId: Long? = null,
     importedWodText: ImportedWodText? = null,
     showImportedPrefillMissingMessage: Boolean = false,
     todayProvider: () -> LocalDate = { LocalDate.now() },
     private val nowProvider: () -> Instant = { Instant.now() },
     private val localIdProvider: () -> String = { UUID.randomUUID().toString() }
 ) : ViewModel() {
+    private var originalWod: Wod? = null
     private val today = todayProvider()
     private val _uiState = MutableStateFlow(
         importedWodText?.toPrefilledState(today)
@@ -42,6 +44,80 @@ class WodEditViewModel(
             )
     )
     val uiState: StateFlow<WodEditUiState> = _uiState.asStateFlow()
+
+    init {
+        editingWodId?.let(::loadExistingWod)
+    }
+
+    private fun loadExistingWod(wodId: Long) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    editingWodId = wodId,
+                    isLoading = true,
+                    message = null,
+                    validationErrors = emptyList()
+                )
+            }
+
+            val wod = repository.getWodById(wodId)
+            if (wod == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        message = "수정할 WOD를 찾을 수 없습니다."
+                    )
+                }
+                return@launch
+            }
+
+            originalWod = wod
+            val sections = repository.getSectionsForWod(wodId).sortedBy { it.orderIndex }
+            val sectionLocalIdById = sections.associate { section ->
+                section.id to "section-${section.id}"
+            }
+            val movements = repository.getMovementsForWod(wodId).sortedBy { it.orderIndex }
+
+            _uiState.update {
+                it.copy(
+                    editingWodId = wod.id,
+                    dateInput = WodlogDateUtils.formatDate(wod.date),
+                    titleInput = wod.title,
+                    wodType = wod.type,
+                    rawTextInput = wod.rawText.orEmpty(),
+                    memoInput = wod.notes.orEmpty(),
+                    sourceType = wod.sourceType,
+                    sourceUrl = wod.sourceUrl,
+                    importedAt = wod.importedAt,
+                    sections = sections.map { section ->
+                        WodSectionInputState(
+                            localId = sectionLocalIdById.getValue(section.id),
+                            originalId = section.id,
+                            titleInput = section.name
+                        )
+                    },
+                    movements = movements.map { movement ->
+                        MovementInputState(
+                            localId = "movement-${movement.id}",
+                            originalId = movement.id,
+                            sectionLocalId = movement.sectionId?.let(sectionLocalIdById::get),
+                            nameInput = movement.name,
+                            weightInput = movement.weightKg?.toString().orEmpty(),
+                            repsInput = movement.reps?.toString().orEmpty(),
+                            setsInput = movement.sets?.toString().orEmpty(),
+                            roundsInput = movement.rounds?.toString().orEmpty(),
+                            distanceInput = movement.distanceMeters?.toString().orEmpty(),
+                            caloriesInput = movement.calories?.toString().orEmpty(),
+                            timeSecondsInput = movement.durationSeconds?.toString().orEmpty(),
+                            category = movement.category ?: MovementCategory.OTHER,
+                            memoInput = movement.notes.orEmpty()
+                        )
+                    },
+                    isLoading = false
+                )
+            }
+        }
+    }
 
     fun onDateChange(value: String) {
         updateInput { copy(dateInput = value) }
@@ -173,20 +249,35 @@ class WodEditViewModel(
             }
 
             val now = nowProvider()
+            val original = originalWod
             val wodId = repository.saveWod(
-                Wod(
-                    date = requireNotNull(parsedInput.date),
-                    title = currentState.titleInput.trim(),
-                    type = requireNotNull(currentState.wodType),
-                    rawText = currentState.rawTextInput.trimToNull(),
-                    notes = currentState.memoInput.trimToNull(),
-                    sourceType = currentState.sourceType,
-                    sourceUrl = currentState.sourceUrl?.trimToNull(),
-                    importedAt = currentState.importedAt,
-                    createdAt = now,
-                    updatedAt = now
-                )
+                if (original != null) {
+                    original.copy(
+                        date = requireNotNull(parsedInput.date),
+                        title = currentState.titleInput.trim(),
+                        type = requireNotNull(currentState.wodType),
+                        rawText = currentState.rawTextInput.trimToNull(),
+                        notes = currentState.memoInput.trimToNull(),
+                        updatedAt = now
+                    )
+                } else {
+                    Wod(
+                        date = requireNotNull(parsedInput.date),
+                        title = currentState.titleInput.trim(),
+                        type = requireNotNull(currentState.wodType),
+                        rawText = currentState.rawTextInput.trimToNull(),
+                        notes = currentState.memoInput.trimToNull(),
+                        sourceType = currentState.sourceType,
+                        sourceUrl = currentState.sourceUrl?.trimToNull(),
+                        importedAt = currentState.importedAt,
+                        createdAt = now,
+                        updatedAt = now
+                    )
+                }
             )
+            if (original != null) {
+                replaceExistingSectionsAndMovements(wodId)
+            }
             val sectionIdByLocalId = saveSections(wodId, currentState.sections)
             saveMovements(wodId, parsedInput.movements, sectionIdByLocalId)
 
@@ -194,7 +285,7 @@ class WodEditViewModel(
                 it.copy(
                     isSaving = false,
                     validationErrors = emptyList(),
-                    message = "WOD saved",
+                    message = if (original != null) "수정되었습니다." else "WOD saved",
                     savedWodId = wodId
                 )
             }
@@ -219,6 +310,15 @@ class WodEditViewModel(
             )
             section.localId to sectionId
         }.toMap()
+    }
+
+    private suspend fun replaceExistingSectionsAndMovements(wodId: Long) {
+        repository.getMovementsForWod(wodId).forEach { movement ->
+            repository.deleteMovement(movement.id)
+        }
+        repository.getSectionsForWod(wodId).forEach { section ->
+            repository.deleteWodSection(section.id)
+        }
     }
 
     private suspend fun saveMovements(

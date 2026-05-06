@@ -5,6 +5,7 @@ import com.wodlog.app.domain.model.Movement
 import com.wodlog.app.domain.model.UserProfile
 import com.wodlog.app.domain.model.Wod
 import com.wodlog.app.domain.model.WodResult
+import com.wodlog.app.domain.model.WodSection
 import java.util.Locale
 
 object PromptGenerator {
@@ -23,12 +24,14 @@ object PromptGenerator {
 
             appendProfile(input.profile)
             appendCurrentWod(input.currentWod)
-            appendMovements(input.movements)
-            appendResult(input.result)
+            appendSections(input.sections)
+            appendMovements("## Movement 목록", input.movements)
+            appendResult("## 결과 기록", input.result)
             appendRecentSummary(input.recentSummary)
             appendLifestyle(input.lifestyleLog)
             appendAdditionalMemo(input.additionalUserMemo)
             appendQuestions()
+            appendAnswerFormat()
         }.trim()
     }
 
@@ -54,45 +57,65 @@ object PromptGenerator {
         appendLine()
     }
 
-    private fun StringBuilder.appendMovements(movements: List<Movement>) {
-        appendLine("## Movement 목록")
-        if (movements.isEmpty()) {
+    private fun StringBuilder.appendSections(sections: List<WodSection>) {
+        appendLine("## Section 목록")
+        if (sections.isEmpty()) {
             appendLine("- 미입력")
         } else {
-            movements.sortedBy { it.orderIndex }.forEachIndexed { index, movement ->
-                appendLine("${index + 1}. ${movement.name}")
-                appendLine("   - 카테고리: ${movement.category?.name.display()}")
-                appendLine("   - 무게: ${movement.weightKg.format("kg")}")
-                appendLine("   - 횟수: ${movement.reps.display()}")
-                appendLine("   - 세트: ${movement.sets.display()}")
-                appendLine("   - 라운드: ${movement.rounds.display()}")
-                appendLine("   - 거리: ${movement.distanceMeters.format("m")}")
-                appendLine("   - 칼로리: ${movement.calories.format("cal")}")
-                appendLine("   - 시간: ${movement.durationSeconds.format("sec")}")
-                appendLine("   - 메모: ${movement.notes.display()}")
+            sections.sortedBy { it.orderIndex }.forEachIndexed { index, section ->
+                appendLine("${index + 1}. ${section.name}")
             }
         }
         appendLine()
     }
 
-    private fun StringBuilder.appendResult(result: WodResult?) {
-        appendLine("## 결과 기록")
+    private fun StringBuilder.appendMovements(title: String, movements: List<Movement>) {
+        appendLine(title)
+        if (movements.isEmpty()) {
+            appendLine("- 미입력")
+        } else {
+            movements.sortedBy { it.orderIndex }.forEachIndexed { index, movement ->
+                appendMovement(index, movement)
+            }
+        }
+        appendLine()
+    }
+
+    private fun StringBuilder.appendMovement(index: Int, movement: Movement) {
+        appendLine("${index + 1}. ${movement.name}")
+        appendLine("   - 카테고리: ${movement.category?.name.display()}")
+        appendLine("   - 무게: ${movement.weightKg.format("kg")}")
+        appendLine("   - 횟수: ${movement.reps.display()}")
+        appendLine("   - 세트: ${movement.sets.display()}")
+        appendLine("   - 라운드: ${movement.rounds.display()}")
+        appendLine("   - 거리: ${movement.distanceMeters.format("m")}")
+        appendLine("   - 칼로리: ${movement.calories.format("cal")}")
+        appendLine("   - 시간: ${movement.durationSeconds.format("sec")}")
+        appendLine("   - 메모: ${movement.notes.display()}")
+    }
+
+    private fun StringBuilder.appendResult(title: String, result: WodResult?) {
+        appendLine(title)
         if (result == null) {
             appendLine("- 결과: 미입력")
         } else {
-            appendLine("- Score type: ${result.scoreType.name}")
-            appendLine("- Time: ${result.timeSeconds.format("sec")}")
-            appendLine("- Rounds/Reps: ${result.rounds.display()} rounds + ${result.extraReps.display()} reps")
-            appendLine("- Total reps: ${result.totalReps.display()}")
-            appendLine("- Load: ${result.loadKg.format("kg")}")
-            appendLine("- Distance: ${result.distanceMeters.format("m")}")
-            appendLine("- Calories: ${result.calories.format("cal")}")
-            appendLine("- Rx status: ${result.rxStatus.name}")
-            appendLine("- RPE: ${result.rpe.display()}")
-            appendLine("- Condition: ${result.condition?.name.display()}")
-            appendLine("- Memo: ${result.memo.display()}")
+            appendResultFields(result)
         }
         appendLine()
+    }
+
+    private fun StringBuilder.appendResultFields(result: WodResult) {
+        appendLine("- Score type: ${result.scoreType.name}")
+        appendLine("- Time: ${result.timeSeconds.format("sec")}")
+        appendLine("- Rounds/Reps: ${result.rounds.display()} rounds + ${result.extraReps.display()} reps")
+        appendLine("- Total reps: ${result.totalReps.display()}")
+        appendLine("- Load: ${result.loadKg.format("kg")}")
+        appendLine("- Distance: ${result.distanceMeters.format("m")}")
+        appendLine("- Calories: ${result.calories.format("cal")}")
+        appendLine("- Rx status: ${result.rxStatus.name}")
+        appendLine("- RPE: ${result.rpe.display()}")
+        appendLine("- Condition: ${result.condition?.name.display()}")
+        appendLine("- Memo: ${result.memo.display()}")
     }
 
     private fun StringBuilder.appendRecentSummary(summary: AnalysisSummary?) {
@@ -101,13 +124,61 @@ object PromptGenerator {
             appendLine("- 최근 비교 데이터 없음")
         } else {
             summary.items.forEach { item ->
-                appendLine("- ${item.label.displayName()}: ${item.date} / ${item.title} / ${item.wodType.name}")
+                appendLine("### ${item.label.displayName()}")
+                appendLine("- 날짜: ${item.date}")
+                appendLine("- 제목: ${item.title}")
+                appendLine("- WOD 유형: ${item.wodType.name}")
+                appendLine("- 원문: ${item.rawText.display()}")
+                appendLine("- 메모: ${item.notes.display()}")
+                appendLine("- Section:")
+                if (item.sections.isEmpty()) {
+                    appendLine("  - 미입력")
+                } else {
+                    item.sections.sortedBy { it.orderIndex }.forEachIndexed { index, section ->
+                        appendLine("  ${index + 1}. ${section.name}")
+                    }
+                }
+                appendLine("- Movement:")
+                if (item.movements.isEmpty()) {
+                    appendLine("  - 미입력")
+                } else {
+                    item.movements.sortedBy { it.orderIndex }.forEachIndexed { index, movement ->
+                        appendLine("  ${index + 1}. ${movement.name}")
+                        appendLine("     - 카테고리: ${movement.category?.name.display()}")
+                        appendLine("     - 무게: ${movement.weightKg.format("kg")}")
+                        appendLine("     - 횟수: ${movement.reps.display()}")
+                        appendLine("     - 세트: ${movement.sets.display()}")
+                        appendLine("     - 라운드: ${movement.rounds.display()}")
+                        appendLine("     - 거리: ${movement.distanceMeters.format("m")}")
+                        appendLine("     - 칼로리: ${movement.calories.format("cal")}")
+                        appendLine("     - 시간: ${movement.durationSeconds.format("sec")}")
+                        appendLine("     - 메모: ${movement.notes.display()}")
+                    }
+                }
+                appendLine("- Result:")
+                if (item.result == null) {
+                    appendLine("  - 결과: 미입력")
+                } else {
+                    appendLine("  - Score type: ${item.result.scoreType.name}")
+                    appendLine("  - Time: ${item.result.timeSeconds.format("sec")}")
+                    appendLine("  - Rounds/Reps: ${item.result.rounds.display()} rounds + ${item.result.extraReps.display()} reps")
+                    appendLine("  - Total reps: ${item.result.totalReps.display()}")
+                    appendLine("  - Load: ${item.result.loadKg.format("kg")}")
+                    appendLine("  - Distance: ${item.result.distanceMeters.format("m")}")
+                    appendLine("  - Calories: ${item.result.calories.format("cal")}")
+                    appendLine("  - Rx status: ${item.result.rxStatus.name}")
+                    appendLine("  - RPE: ${item.result.rpe.display()}")
+                    appendLine("  - Condition: ${item.result.condition?.name.display()}")
+                    appendLine("  - Memo: ${item.result.memo.display()}")
+                }
+                appendLine("- 자동 계산 참고:")
                 appendLine("  - Total reps: ${item.totalReps}")
                 appendLine("  - Load volume: ${item.totalLoadVolume.formatNumber()}")
                 appendLine("  - Distance: ${item.totalDistance.formatNumber()}")
                 appendLine("  - Calories: ${item.totalCalories.formatNumber()}")
                 appendLine("  - Rx status: ${item.rxStatus?.name.display()}")
                 appendLine("  - RPE: ${item.rpe.display()}")
+                appendLine("  - Category count: ${item.movementCategoryCounts.displayCategoryCounts()}")
             }
             appendLine("- 카테고리 비중:")
             if (summary.categoryBreakdown.isEmpty()) {
@@ -153,6 +224,15 @@ object PromptGenerator {
         appendLine("3. 운동 구성 관점에서 과도하게 반복되거나 부족해 보이는 영역이 있나요?")
         appendLine("4. 다음 훈련에서 주의할 점을 정리해 주세요.")
         appendLine("5. WOD가 서로 다르면 직접적인 우열 판단 대신 total reps, load volume, distance, calories, Rx, RPE, 카테고리 비중 중심으로 설명해 주세요.")
+        appendLine()
+    }
+
+    private fun StringBuilder.appendAnswerFormat() {
+        appendLine("## 답변 형식")
+        appendLine("- 답변은 너무 길게 늘어뜨리지 말고 핵심 위주로 작성해 주세요.")
+        appendLine("- 각 항목의 핵심 포인트 앞에는 적당한 이모티콘(예: ✅, ⚠️, 🎯)을 사용해 가독성을 높여 주세요.")
+        appendLine("- 이모티콘은 과하게 쓰지 말고, 강조가 필요한 핵심 문장에만 사용해 주세요.")
+        appendLine("- 마지막에는 \"요약\" 섹션을 두고 답변의 핵심을 3~5줄로 정리해 주세요.")
     }
 
     private fun ComparisonLabel.displayName(): String {
@@ -160,6 +240,14 @@ object PromptGenerator {
             ComparisonLabel.Older -> "전전 WOD"
             ComparisonLabel.Previous -> "전 WOD"
             ComparisonLabel.Current -> "현재 WOD"
+        }
+    }
+
+    private fun Map<*, Int>.displayCategoryCounts(): String {
+        return if (isEmpty()) {
+            EMPTY_VALUE
+        } else {
+            entries.joinToString { (category, count) -> "$category: ${count}개" }
         }
     }
 
